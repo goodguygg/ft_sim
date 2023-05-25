@@ -39,21 +39,13 @@ def trading_policy(params, substep, state_history, previous_state):
                         tokens_in = trade_decision['short']['denomination']
                         tokens_out = 'USDT' if tokens_in == 'USDC' else 'USDC'
                         swap_fee = swap_fee_calc(pool, tokens_in, trade_decision['short']['swap'], tokens_out, trade_decision['short']['swap'], params['base_fees_swap'], params['om_fees_swap'], asset_prices)
-                        trader = swap_tokens_trader(trader, trade_decision['short']['swap'], tokens_in, tokens_out, swap_fee)
-                        pool = swap_tokens_pool(pool, trade_decision['short']['swap'], tokens_in, tokens_out, swap_fee)
+                        trader = swap_tokens_trader(trader, tokens_in, trade_decision['short']['swap'], tokens_out, trade_decision['short']['swap'], swap_fee)
+                        pool = swap_tokens_pool(pool, tokens_in, trade_decision['short']['swap'], tokens_out, trade_decision['short']['swap'], swap_fee)
 
-                        # pay the fee to lps andtreasury
-                        if trade_decision['long'] != None:
-                            provider_pnl[p][asset] += swap_fee[0] * 0.7
-                            treasury[asset] += swap_fee[0] * 0.3
-                            if trade_decision['long']['direction'] == 'close':
-                                liquidations += trade_decision['long']['liquidations']
-
-                        if trade_decision['short'] != None:
-                            provider_pnl[p][trade_decision['short']['denomination']] += swap_fee[1] * 0.7
-                            treasury[trade_decision['short']['denomination']] += swap_fee[1] * 0.3
-                            if trade_decision['short']['direction'] == 'close':
-                                liquidations += trade_decision['short']['liquidations']
+                        provider_pnl[p][tokens_in] += swap_fee[0] * 0.7
+                        treasury[tokens_in] += swap_fee[0] * 0.3
+                        provider_pnl[p][tokens_out] += swap_fee[1] * 0.7
+                        treasury[tokens_out] += swap_fee[1] * 0.3
 
                 # Fetch the fee amount
                 fees = trading_fee(pool, asset, trade_decision, params['rate_params'], params['ratio_mult'])
@@ -69,7 +61,7 @@ def trading_policy(params, substep, state_history, previous_state):
                 pool = pool_tmp
                 fees_collected[p][asset] += fees[0] * asset_prices[asset] + fees[1]
 
-                # pay the fee to lps andtreasury, consider the pnl of the providers
+                # pay the fee to lps and treasury, consider the pnl of the providers
                 if trade_decision['long'] != None:
                     # distribute fees to providers
                     provider_pnl[p][asset] += fees[0] * 0.7
@@ -89,9 +81,25 @@ def trading_policy(params, substep, state_history, previous_state):
                         liquidations += trade_decision['short']['liquidations']
 
             
-            # asset_prices = get_asset_prices(pool['assets'], timestep)
-            # for asset in pool['assets']:
-            #     swaping_decision = swap_decision
+            asset_prices = get_asset_prices(price_dict)
+            for asset in pool['assets']:
+                swaping_decision = swap_decision(trader, asset, asset_prices)
+
+                if swaping_decision == None:
+                    continue
+
+                swap_in = swaping_decision['swap_in']
+                swap_out = swaping_decision['swap_out']
+
+                swap_fee = swap_fee_calc(pool, swap_in[1], swap_in[0], swap_out[1], swap_out[0], params['base_fees_swap'], params['om_fees_swap'], asset_prices)
+                trader = swap_tokens_trader(trader, swap_in[1], swap_in[0], swap_out[1], swap_out[0], swap_fee)
+                pool = swap_tokens_pool(pool, swap_in[1], swap_in[0], swap_out[1], swap_out[0], swap_fee)
+
+                provider_pnl[p][swap_in[1]] += swap_fee[0] * 0.7
+                treasury[swap_in[1]] += swap_fee[0] * 0.3
+                provider_pnl[p][swap_out[1]] += swap_fee[1] * 0.7
+                treasury[swap_out[1]] += swap_fee[1] * 0.3
+
 
         pools[pool_id] = pool
         p += 1

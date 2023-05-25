@@ -52,22 +52,22 @@ def swap_fee_calc(pool, token_in, token_in_amt, token_out, token_out_amt, base_f
 
     return [receiving_fee + receiving_base_fee, paying_fee + paying_base_fee]
 
-def swap_tokens_trader(trader_passed, amount, token_in, token_out, swap_fee):
+def swap_tokens_trader(trader_passed, token_in, token_in_amt, token_out, token_out_amt, swap_fee):
     trader = copy.deepcopy(trader_passed)
 
-    trader['liquidity'][token_in] -= amount - swap_fee[0]
-    trader['liquidity'][token_out] += amount - swap_fee[1]
+    trader['liquidity'][token_in] -= token_in_amt - swap_fee[0]
+    trader['liquidity'][token_out] += token_out_amt - swap_fee[1]
 
     return trader
 
 # def trading_fee(pool, asset, trade_decision, rate_params, max_payoff_mult):
-def swap_tokens_pool(pool, amount, token_in, token_out, swap_fee):
+def swap_tokens_pool(pool, token_in, token_in_amt, token_out, token_out_amt, swap_fee):
 
     pool = copy.deepcopy(pool)
 
-    pool['holdings'][token_in] -= amount
-    pool['holdings'][token_out] += amount
-    pool['fees_collected'][token_in] += sum(swap_fee)
+    pool['holdings'][token_in] -= token_in_amt
+    pool['holdings'][token_out] += token_out_amt
+    pool['total_fees_collected'][token_in] += sum(swap_fee)
 
     return pool
 
@@ -80,11 +80,11 @@ def swap_decision(trader_passed, asset, asset_prices):
         swap_in = np.random.uniform(low=0.01, high=0.99) * asset_held
         swap_out_asset = random.choice(list(asset_prices.keys()))
         swap_out = swap_in * asset_prices[asset] / asset_prices[swap_out_asset]
-        return {'swap_in': swap_in, 'swap_out': swap_out}
+        return {'swap_in': [swap_in, asset], 'swap_out': [swap_out, swap_out_asset]}
     elif swap_action > 0.8: # sell
         swap_out = np.random.uniform(low=0.01, high=0.99) * asset_held
         swap_in_asset = random.choice(list(asset_prices.keys()))
         swap_in = swap_out * asset_prices[asset] / asset_prices[swap_in_asset]
-        return {'swap_in': swap_in, 'swap_out': swap_out}
+        return {'swap_in': [swap_in, swap_in_asset], 'swap_out': [swap_out, asset]}
     else:
         return None
