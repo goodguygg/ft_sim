@@ -5,7 +5,7 @@ import copy
 import os
 import random
 
-def get_asset_prices(assets, timestep):
+def fetch_asset_prices(assets, timestep):
     asset_prices = {}
     for asset in assets:
         try:
@@ -13,9 +13,17 @@ def get_asset_prices(assets, timestep):
             df = pd.read_excel(file_path)
         except:
             file_path = os.path.join('parts', 'data', f'{asset}.xlsx')
-            df = pd.read_excel(file_path)    
-        price = df.loc[timestep, 'Close']
-        asset_prices.update({asset: price})
+            df = pd.read_excel(file_path)
+        price_high = df.loc[timestep, 'High']
+        price_low = df.loc[timestep, 'Low']
+        asset_prices.update({asset: [price_low, price_high]})
+    return asset_prices
+
+def get_asset_prices(asset_prices):
+    asset_prices = copy.deepcopy(asset_prices)
+    for asset in asset_prices.keys():
+        #print(asset_prices)
+        asset_prices[asset] = asset_prices[asset][0] + random.random() * (asset_prices[asset][1] - asset_prices[asset][0])
     return asset_prices
 
 def get_asset_volatility(assets, timestep):
@@ -52,52 +60,6 @@ def get_account_value(trader, asset_prices):
 
 def number_of_lqprov(timestep):
     return 20
-
-def update_provider(pool, liquidity_provider, amount, lot_size, asset, provder_open_pnl):
-    provider = copy.deepcopy(liquidity_provider)
-
-    # in case of liquidity removal update the lot_size and the amount with the provider's pnl
-    if lot_size < 0:
-        provider['liquidity'][asset] = provider['liquidity'][asset] + provder_open_pnl
-        amount = amount - provder_open_pnl
-        lot_size = lot_size - provder_open_pnl
-    # check if the provider has enough funds to provide the liquidity
-    if provider['funds'][asset] >= amount:
-        provider['funds'][asset] -= amount
-        provider['liquidity'][asset] += lot_size
-    else:
-        return -1
-    
-    return provider
-
-def update_pool_liquidity(pool, liquidity_provider, lot_size, asset, provder_open_pnl):
-    provider_id = liquidity_provider['id']
-    tmp_pool = copy.deepcopy(pool)
-
-    # If lot_size is negative, we check if the provider has a position in the pool
-    if lot_size < 0:
-        # If the provider is in the pool and the absolute value of lot_size is less than or equal to 
-        # the liquidity they provided for the given asset, we update the pool
-        lot_size = lot_size - provder_open_pnl
-        
-        if provider_id in tmp_pool['liquidity_providers'] and abs(lot_size) <= tmp_pool['liquidity_providers'][provider_id][asset]:
-            tmp_pool['holdings'][asset] += lot_size
-            tmp_pool['liquidity_providers'][provider_id][asset] += lot_size
-        else:
-            # The provider doesn't have enough liquidity for the given asset to withdraw
-            return -1
-    else:
-        # lot_size is positive
-        tmp_pool['holdings'][asset] += lot_size
-        if provider_id in tmp_pool['liquidity_providers']:
-            if asset in tmp_pool['liquidity_providers'][provider_id]:
-                tmp_pool['liquidity_providers'][provider_id][asset] += lot_size
-            else:
-                tmp_pool['liquidity_providers'][provider_id][asset] = lot_size
-        else:
-            tmp_pool['liquidity_providers'][provider_id] = {asset: lot_size}
-
-    return tmp_pool
 
 def calculate_interest(position_size, duration, asset, pool, rate_params):
     optimal_utilization = rate_params[0]

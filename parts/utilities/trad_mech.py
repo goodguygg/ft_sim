@@ -3,68 +3,6 @@ from .utils import *
 import copy
 import numpy as np
 
-def liquidity_provider_decision(liquidity_provider, pool_yield, asset_prices, asset_volatility):
-    assets = pool_yield.keys()
-    decision = {asset: 0 for asset in assets}
-
-    for asset in assets:
-        add_threshold = copy.copy(liquidity_provider['add_threshold'][asset])
-        remove_threshold = copy.copy(liquidity_provider['remove_threshold'][asset])
-
-        # Adjust thresholds based on volatility
-        if asset_volatility[asset] is not None:
-            add_threshold += asset_volatility[asset]
-            remove_threshold += asset_volatility[asset]
-
-        asset_yield = pool_yield[asset]
-
-        if asset_yield > add_threshold:
-            # The provider adds liquidity proportional to the excess yield
-            liquidity_to_add = (liquidity_provider['funds'][asset] / asset_prices[asset]) * 10 * (asset_yield - add_threshold)
-            liquidity_provider['funds'][asset] -= liquidity_to_add * asset_prices[asset]
-            decision[asset] += liquidity_to_add
-
-        elif asset_yield < remove_threshold:
-            # The provider removes liquidity proportional to the shortfall
-            liquidity_to_remove = liquidity_provider['liquidity'][asset] * 10 * (remove_threshold - asset_yield)
-            liquidity_provider['liquidity'][asset] -= liquidity_to_remove
-            decision[asset] -= liquidity_to_remove
-    
-    return decision
-
-def liquidity_fee(pool, asset, provider_decision, asset_prices, base_fee, ratio_mult):
-    # if token ratio is improved:           
-    #     fee = base_fee / ratio_fee
-    # otherwise:         
-    #     fee = base_fee * ratio_fee
-    # where:          
-    # if new_ratio < ratios.target:
-    #         ratio_fee = 1 + custody.fees.ratio_mult * (ratios.target - new_ratio) / (ratios.target - ratios.min);          
-    # otherwise:
-    #     ratio_fee = 1 + custody.fees.ratio_mult * (new_ratio - ratios.target) / (ratios.max - ratios.target);
-
-    target_ratio = pool['target_ratios'][asset]
-    tvl = pool_total_holdings(pool, asset_prices)
-    current_ratio = (pool['holdings'][asset] * asset_prices[asset]) / tvl
-
-    new_holding = pool['holdings'][asset] + provider_decision[asset]
-    new_tvl = tvl + provider_decision[asset] * asset_prices[asset]
-    new_ratio = new_holding * asset_prices[asset] / new_tvl
-
-    if new_ratio - target_ratio > pool['deviation']:
-        return -1
-
-    if (new_ratio - current_ratio) < (target_ratio - current_ratio):
-        ratio_fee = base_fee / ratio_mult
-    else:
-        if new_ratio < target_ratio:
-            ratio_fee = 1 + ratio_mult * (target_ratio - new_ratio) / (pool['deviation'])
-        else:
-            ratio_fee = 1 + ratio_mult * (new_ratio - target_ratio) / (pool['deviation'])
-        #ratio_fee = base_fee * ratio_fee
-
-    return ratio_fee
-
 def close_long(trader, timestep, asset, asset_price, liquidated, pool, rate_params):
     trader = copy.deepcopy(trader)
 
@@ -104,7 +42,6 @@ def close_short(trader, timestep, asset, asset_price, liquidated, pool, rate_par
         'direction': 'close'
     }
     return decision
-
 
 def trading_decision(trader_passed, timestep, asset, asset_price, max_margin, liquidation_threshold, pool, rate_params):
     trader = copy.deepcopy(trader_passed)
@@ -450,74 +387,3 @@ def trading_fee(pool, asset, trade_decision, rate_params, max_payoff_mult):
             short_fee = pool['fees']['close'] * trade_decision['short']['quantity']
 
     return [long_fee, short_fee]
-
-
-#def trading_decision(trader_passed, timestep, asset, asset_price, max_margin, liquidation_threshold, pool, rate_params):
-
-def swap_tokens_trader(trader_passed, amount, token_in, token_out, swap_fee):
-    trader = copy.deepcopy(trader_passed)
-
-    trader['liquidity'][token_in] -= amount - swap_fee[0]
-    trader['liquidity'][token_out] += amount - swap_fee[1]
-
-    return trader
-
-# def trading_fee(pool, asset, trade_decision, rate_params, max_payoff_mult):
-def swap_tokens_pool(pool, amount, token_in, token_out, swap_fee):
-
-    pool = copy.deepcopy(pool)
-
-    pool['holdings'][token_in] -= amount
-    pool['holdings'][token_out] += amount
-    pool['fees_collected'][token_in] += sum(swap_fee)
-
-    return pool
-
-def swap_fee_calc(pool, token_in, token_in_amt, token_out, token_out_amt, base_fees, om_fees, asset_prices):
-    '''
-    final fee = pool receiving swap fee + pool paying swap fee + pool receiving base fee + pool paying base fee
-
-    base fees:
-    btc: 0.00025
-    eth: 0.00025
-    sol: 0.00015
-    usdc/usdt: 0.0001
-
-    for pool receiving tokens (allocation % up)
-
-    fee = A * (post trade ratio * 100 - target ratio * 100)^3 + fee optimal
-    where A = (fee max - fee optional) / (max ratio * 100 - target ratio * 100) ^ 3
-
-    for pool paying tokens (allocation % down)
-
-    fee = A * (post trade ratio * 100 - target ratio * 100)^3 + fee optimal
-    where A = (fee max - fee optional) / (min ratio * 100 - target ratio * 100) ^ 3
-    
-    '''
-
-    # return ratio_fee
-    tvl = pool_total_holdings(pool, asset_prices)
-    fee_max = om_fees[0]
-    fee_optimal = om_fees[1]
-
-    target_ratio_in = pool['target_ratios'][token_in]
-    post_trade_ratio_in = (pool['holdings'][token_in] + token_in_amt) * asset_prices[token_in] / tvl
-    max_ratio_in = target_ratio_in + pool['deviation']
-
-    # Calculate the pool receiving swap fee
-    A_receiving = (fee_max - fee_optimal) / (max_ratio_in * 100 - target_ratio_in * 100) ** 3
-    receiving_fee = A_receiving * (post_trade_ratio_in * 100 - target_ratio_in * 100) ** 3 + fee_optimal
-
-    target_ratio_out = pool['target_ratios'][token_out]
-    post_trade_ratio_out = (pool['holdings'][token_out] - token_out_amt) * asset_prices[token_out] / tvl
-    min_ratio_out = target_ratio_out - pool['deviation']
-
-    # Calculate the pool paying swap fee
-    A_paying = (fee_max - fee_optimal) / (min_ratio_out * 100 - target_ratio_out * 100) ** 3
-    paying_fee = A_paying * (post_trade_ratio_out * 100 - target_ratio_out * 100) ** 3 + fee_optimal
-
-    # Get the pool receiving base fee and the pool paying base fee
-    receiving_base_fee = base_fees[token_in]
-    paying_base_fee = base_fees[token_out]
-
-    return [receiving_fee + receiving_base_fee, paying_fee + paying_base_fee]

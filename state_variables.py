@@ -1,10 +1,11 @@
-from parts.utils import *
+from parts.utilities.utils import * 
 from sys_params import initial_conditions
 
 def generate_providers(n_providers):
     liquidity_providers = {}
     assets = ['BTC', 'ETH', 'SOL', 'USDC', 'USDT']
-    asset_prices = get_asset_prices(assets, 0)
+    price_dict = fetch_asset_prices(assets, 0)
+    asset_prices = get_asset_prices(price_dict)    
     for i in range(n_providers):
         thresholds = {asset: np.random.uniform(low=0, high=0.1) for asset in assets}
         liquidity_provider = {
@@ -20,7 +21,8 @@ def generate_providers(n_providers):
 def generate_traders(n_traders):
     traders = {}
     assets = ['BTC', 'ETH', 'SOL', 'USDC', 'USDT']
-    asset_prices = get_asset_prices(assets, 0)
+    price_dict = fetch_asset_prices(assets, 0)
+    asset_prices = get_asset_prices(price_dict)
     for i in range(n_traders):
         trader = {
             'id': i,

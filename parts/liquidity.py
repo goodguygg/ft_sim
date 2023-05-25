@@ -1,5 +1,5 @@
-from .utils import *
-from .mechanisms import liquidity_provider_decision, liquidity_fee
+from .utilities.utils import *
+from .utilities.liq_mech import *
 import copy
 
 def liquidity_policy(params, substep, state_history, previous_state):
@@ -12,13 +12,15 @@ def liquidity_policy(params, substep, state_history, previous_state):
     p = 0
     for pool_id in pools.keys():
         pool = pools[pool_id]
-        asset_prices = get_asset_prices(pool['assets'], timestep)
         asset_volatility = get_asset_volatility(pool['assets'], timestep)
         fees_collected.append({ast: 0 for ast in pool['assets']})
+        price_dict = fetch_asset_prices(pool['assets'], timestep)
 
         for liquidity_provider_id in liquidity_providers.keys():
             liquidity_provider = liquidity_providers[liquidity_provider_id]
+            asset_prices = get_asset_prices(price_dict)
             provider_decision = liquidity_provider_decision(liquidity_provider, pool['yield'], asset_prices, asset_volatility)
+
             for asset in provider_decision.keys():
                 if provider_decision[asset] == 0:
                     continue

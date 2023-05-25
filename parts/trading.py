@@ -1,5 +1,6 @@
-from .utils import *
-from .mechanisms import *
+from .utilities.utils import *
+from .utilities.trad_mech import *
+from .utilities.swap_mech import *
 
 def trading_policy(params, substep, state_history, previous_state):
 
@@ -16,13 +17,14 @@ def trading_policy(params, substep, state_history, previous_state):
     p = 0
     for pool_id in pools.keys():
         pool = pools[pool_id]
-        asset_prices = get_asset_prices(pool['assets'], timestep)
         fees_collected.append({ast: 0 for ast in pool['assets']})
         provider_pnl.append({ast: 0 for ast in pool['assets']})
+        price_dict = fetch_asset_prices(pool['assets'], timestep)
 
         for trader_id in traders.keys():
             trader = traders[trader_id]
-            
+            asset_prices = get_asset_prices(price_dict)
+
             for asset in pool['assets']:
                 if asset == 'USDT' or asset == 'USDC':
                     continue
@@ -85,6 +87,11 @@ def trading_policy(params, substep, state_history, previous_state):
                         # subtract pnl from providers
                         provider_pnl[p][trade_decision['short']['denomination']] -= trade_decision['short']['PnL']
                         liquidations += trade_decision['short']['liquidations']
+
+            
+            # asset_prices = get_asset_prices(pool['assets'], timestep)
+            # for asset in pool['assets']:
+            #     swaping_decision = swap_decision
 
         pools[pool_id] = pool
         p += 1
