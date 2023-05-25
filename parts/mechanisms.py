@@ -400,8 +400,10 @@ def update_pool_trade(pool, trader, trade_decision, fees, asset, cur_price):
             del updated_pool['loan_book_shorts'][trader['id']]
         
     # update pool open pnl based on cur_price and the postition of the trader
-    pool['open_pnl_long'][asset] = trader['positions_short'][asset]['entry_price'] * trader['positions_short'][asset]['quantity'] - cur_price * trader['positions_short'][asset]['quantity']
-    pool['open_pnl_short'][asset] = cur_price * trader['positions_long'][asset]['quantity'] - trader['positions_long'][asset]['entry_price'] * trader['positions_long'][asset]['quantity']
+    if asset in trader['positions_long']:
+        pool['open_pnl_long'][asset] = trader['positions_long'][asset]['entry_price'] * trader['positions_long'][asset]['quantity'] - cur_price * trader['positions_long'][asset]['quantity']
+    if asset in trader['positions_short']:
+        pool['open_pnl_short'][asset] = cur_price * trader['positions_short'][asset]['quantity'] - trader['positions_short'][asset]['entry_price'] * trader['positions_short'][asset]['quantity']
 
     return updated_pool
 
