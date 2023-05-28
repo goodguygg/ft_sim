@@ -1,6 +1,8 @@
 import requests
 import json
 import os
+import numpy as np
+import random
 
 def defi_lama_mcap_tvl():
     #url = "https://api.llama.fi/protocols"
@@ -37,7 +39,13 @@ def list_lib():
         print(filename)
 
 def tst():
-    pass
+
+    a = 3
+
+    if 1 < a < 5:
+        print(a)
+    else:
+        print('none')
 
 
 def main():

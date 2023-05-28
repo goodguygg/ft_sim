@@ -25,6 +25,9 @@ partial_state_update_block = [
             'liquidations': liquidations_uodate,
             'liquidity_providers': distribution_providers_update,
             'treasury': treasury_update,
+            'num_of_trades': num_of_trades_update,
+            'num_of_swaps': num_of_swaps_update,
+
             # 'nominal_exposure': nominal_exposure_update,
             # 'oracle_attack': oracle_attack_update
         }

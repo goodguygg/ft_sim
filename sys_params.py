@@ -1,8 +1,8 @@
 
 
 initial_conditions = {
-    'genesis_traders': 30,
-    'genesis_providers': 20,
+    'genesis_traders': 1,
+    'genesis_providers': 1,
 }
 
 sys_params = {

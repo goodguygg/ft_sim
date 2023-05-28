@@ -58,10 +58,13 @@ def swap_tokens_trader(trader_passed, token_in, token_in_amt, token_out, token_o
     trader['liquidity'][token_in] -= token_in_amt - swap_fee[0]
     trader['liquidity'][token_out] += token_out_amt - swap_fee[1]
 
+    if trader['liquidity'][token_in] < 0 or trader['liquidity'][token_out] < 0:
+        return -1
+
     return trader
 
 # def trading_fee(pool, asset, trade_decision, rate_params, max_payoff_mult):
-def swap_tokens_pool(pool, token_in, token_in_amt, token_out, token_out_amt, swap_fee):
+def swap_tokens_pool(pool, token_in, token_in_amt, token_out, token_out_amt, swap_fee, asset_prices):
 
     pool = copy.deepcopy(pool)
 
@@ -69,7 +72,16 @@ def swap_tokens_pool(pool, token_in, token_in_amt, token_out, token_out_amt, swa
     pool['holdings'][token_out] += token_out_amt
     pool['total_fees_collected'][token_in] += sum(swap_fee)
 
-    return pool
+    tvl = pool_total_holdings(pool, asset_prices)
+
+    post_ratio_in = pool['holdings'][token_in] * asset_prices[token_in] / tvl
+    post_ratio_out = pool['holdings'][token_out] * asset_prices[token_out] / tvl
+
+
+    if pool['target_ratios'][token_in] - pool['deviation'] < post_ratio_in < pool['target_ratios'][token_out] + pool['deviation'] and pool['target_ratios'][token_in] - pool['deviation'] < post_ratio_out < pool['target_ratios'][token_out] + pool['deviation']:
+        return pool
+    else:
+        return -1
 
 def swap_decision(trader_passed, asset, asset_prices):
     trader = copy.deepcopy(trader_passed)

@@ -30,7 +30,7 @@ def generate_traders(n_traders):
             'positions_long': {},  # {token: {quantity: 0, entry_price: 0, collateral: 0, timestep: 0}}
             'positions_short': {},  # {token: {quantity: 0, entry_price: 0, collateral: {amount: 0, denomination: "USDC"}, timestep: 0}}
             'PnL': 0,
-            'avg_position_hold': np.random.uniform(low=1, high=20),
+            'avg_position_hold': np.random.uniform(low=1, high=10),
             'risk_factor': np.random.uniform(low=1, high=10)
         }
         traders[i] = trader
@@ -43,7 +43,7 @@ def generate_pools(n_pools):
         pool = {
             'id': i,
             'assets': ['BTC', 'ETH', 'SOL', 'USDC', 'USDT'],
-            'holdings': {'BTC': 1, 'SOL': 250, 'ETH': 11, 'USDC': 45000, 'USDT': 45000},
+            'holdings': {'BTC': 10, 'SOL': 2500, 'ETH': 110, 'USDC': 450000, 'USDT': 450000},
             'oi_long': {'BTC': 0, 'SOL': 0, 'ETH': 0, 'USDC': 0, 'USDT': 0},
             'oi_short': {'BTC': 0, 'SOL': 0, 'ETH': 0, 'USDC': 0, 'USDT': 0},
             'open_pnl_long': {'BTC': 0, 'SOL': 0, 'ETH': 0, 'USDC': 0, 'USDT': 0},
@@ -68,6 +68,8 @@ genesis_states = {
     'pools': generate_pools(1),
     'treasury': {'BTC': 0, 'SOL': 0, 'ETH': 0, 'USDC': 0, 'USDT': 0},
     'liquidations': 0,
+    'num_of_trades': 0,
+    'num_of_swaps': 0
     # 'nominal_exposure': 0,
     # 'oracle_attack': False
 }

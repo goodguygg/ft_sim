@@ -4,7 +4,7 @@ from cadCAD.engine import ExecutionMode, ExecutionContext,Executor
 from config import exp
 import openpyxl
 from openpyxl.utils.dataframe import dataframe_to_rows
-
+import json
 
 def run():
     '''
@@ -23,27 +23,10 @@ def run():
     return df
 
 def postprocessing(df):
-    '''
-    Definition:
-    Refine and extract metrics from the simulation
-    
-    Parameters:
-    df: simulation dataframe
+    json_data = df.to_json(orient='records', indent=4)
 
-    format of output:
-    df = {
-        number of liquidity providers,
-        liquidity added,
-        pool balances,
-        fees collected,
-        treasury balances,
-    }
-    '''
-    data = df
-    json_data = df.to_json(orient='records')
     with open('data.json', 'w') as file:
         file.write(json_data)
-    print(df.T)
     # number_of_liquidity_providers = []
     # liquidity_added = []
     # pool_balances = []
@@ -61,30 +44,87 @@ def postprocessing(df):
     # Treasury balance
 
     # track pnl of the pool as metric
+    # Initialize an empty list to store each timestep data
+    data = []
+    # Loop through each row in the dataframe
+    for _, row in df.iterrows():
+        traders = row['traders']
+        liquidity_providers = row['liquidity_providers']
+        pools = row['pools']
+        treasury = row['treasury']
+        liquidations = row['liquidations']
+        num_of_trades = row['num_of_trades']
+        num_of_swaps = row['num_of_swaps']
 
-    data = pd.DataFrame({
-        'number_of_traders',
-        'number_of_liquidity_providers',
-        'pool_balance_btc',
-        'pool_balance_eth',
-        'pool_balance_sol',
-        'pool_balance_usdc',
-        'pool_balance_usdT',
-        'cum_pnl_traders',
-        'max_pnl_traders',
-        'min_pnl_traders',
-        'cum_apy_providers',
-        'oi_long',
-        'oi_short',
-        'volume_btc',
-        'volume_eth',
-        'volume_sol',
-        'number_of_liquidations',
-        'fees_collected',
-        'treasury_balance'
-    })
-    
-    return data
+        nominal_exposure_btc = 0
+        nominal_exposure_eth = 0
+        nominal_exposure_sol = 0
+        for trader in traders.values():
+            if 'BTC' in trader['positions_long'] and 'BTC' in trader['positions_short']:
+                nominal_exposure_btc += sum(trader['positions_long']['BTC']['quantity'] + trader['positions_short']['BTC']['quantity'])
+            elif 'BTC' in trader['positions_long']: 
+                nominal_exposure_btc += trader['positions_long']['BTC']['quantity']
+            elif 'BTC' in trader['positions_short']:
+                nominal_exposure_btc += trader['positions_short']['BTC']['quantity']
+            if 'ETH' in trader['positions_long'] and 'ETH' in trader['positions_short']:
+                nominal_exposure_eth += sum(trader['positions_long']['ETH']['quantity'] + trader['positions_short']['ETH']['quantity'])
+            elif 'ETH' in trader['positions_long']:
+                nominal_exposure_eth += trader['positions_long']['ETH']['quantity']
+            elif 'ETH' in trader['positions_short']:
+                nominal_exposure_eth += trader['positions_short']['ETH']['quantity']
+            if 'SOL' in trader['positions_long'] and 'SOL' in trader['positions_short']:
+                nominal_exposure_sol += sum(trader['positions_long']['SOL']['quantity'] + trader['positions_short']['SOL']['quantity'])
+            elif 'SOL' in trader['positions_long']:
+                nominal_exposure_sol += trader['positions_long']['SOL']['quantity']
+            elif 'SOL' in trader['positions_short']:
+                nominal_exposure_sol += trader['positions_short']['SOL']['quantity']
+
+        # Generate data for each row
+        timestep_data = {
+            'number_of_traders': len(traders),
+            'number_of_liquidity_providers': len(liquidity_providers),
+            'pool_balance_btc': pools[0]['holdings']['BTC'],
+            'pool_balance_eth': pools[0]['holdings']['ETH'],
+            'pool_balance_sol': pools[0]['holdings']['SOL'],
+            'pool_balance_usdc': pools[0]['holdings']['USDC'],
+            'pool_balance_usdt': pools[0]['holdings']['USDT'],
+            'cum_pnl_traders': sum(trader['PnL'] for trader in traders.values()),
+            'max_pnl_traders': max(trader['PnL'] for trader in traders.values()),
+            'min_pnl_traders': min(trader['PnL'] for trader in traders.values()),
+            #'cum_apy_providers': sum(lp['yield'] for lp in liquidity_providers.values()),  # Assuming each LP has a 'yield' key
+            'oi_long_btc': pools[0]['oi_long']['BTC'],
+            'oi_long_eth': pools[0]['oi_long']['ETH'],
+            'oi_long_sol': pools[0]['oi_long']['SOL'],
+            'oi_short_btc': pools[0]['oi_short']['BTC'],
+            'oi_short_eth': pools[0]['oi_short']['ETH'],
+            'oi_short_sol': pools[0]['oi_short']['SOL'],
+            'volume_btc': pools[0]['volume']['BTC'],
+            'volume_eth': pools[0]['volume']['ETH'],
+            'volume_sol': pools[0]['volume']['SOL'],
+            'num_of_trades': num_of_trades,
+            'num_of_swaps': num_of_swaps,
+            'number_of_liquidations': liquidations,
+            'fees_collected': sum(pools[0]['total_fees_collected'].values()),
+            'treasury_balance_btc': treasury['BTC'],
+            'treasury_balance_eth': treasury['ETH'],
+            'treasury_balance_sol': treasury['SOL'],
+            'treasury_balance_usdc': treasury['USDC'],
+            'treasury_balance_usdt': treasury['USDT'],
+            'pool_pnl_btc': pools[0]['open_pnl_long']['BTC'] + pools[0]['open_pnl_short']['BTC'], 
+            'pool_pnl_eth': pools[0]['open_pnl_long']['ETH'] + pools[0]['open_pnl_short']['ETH'],
+            'pool_pnl_sol': pools[0]['open_pnl_long']['SOL'] + pools[0]['open_pnl_short']['SOL'],
+            'nominal_exposure_btc': nominal_exposure_btc,
+            'nominal_exposure_eth': nominal_exposure_eth,
+            'nominal_exposure_sol': nominal_exposure_sol,
+        }
+        
+        # Append the timestep data to the list
+        data.append(timestep_data)
+
+    # Convert the list of timestep data into a DataFrame
+    data_df = pd.DataFrame(data)
+
+    return data_df
 
 def to_xslx(df):
 

@@ -91,7 +91,6 @@ def update_pool_liquidity(pool, liquidity_provider, lot_size, asset, provder_ope
         # If the provider is in the pool and the absolute value of lot_size is less than or equal to 
         # the liquidity they provided for the given asset, we update the pool
         lot_size = lot_size - provder_open_pnl
-        
         if provider_id in tmp_pool['liquidity_providers'] and abs(lot_size) <= tmp_pool['liquidity_providers'][provider_id][asset]:
             tmp_pool['holdings'][asset] += lot_size
             tmp_pool['liquidity_providers'][provider_id][asset] += lot_size

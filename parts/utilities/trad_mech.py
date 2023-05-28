@@ -13,7 +13,7 @@ def close_long(trader, timestep, asset, asset_price, liquidated, pool, rate_para
     payout = trader[f'positions_long'][asset]['collateral'] - interest + pnl
 
     decision = {
-        'quantity': trader['positions'][asset]['quantity'],
+        'quantity': trader['positions_long'][asset]['quantity'],
         'payout': payout,
         'interest_paid': interest,
         'PnL': pnl,
@@ -33,7 +33,7 @@ def close_short(trader, timestep, asset, asset_price, liquidated, pool, rate_par
     payout = trader[f'positions_short'][asset]['collateral']['amount'] - interest + pnl
 
     decision = {
-        'quantity': trader['positions'][asset]['quantity'],
+        'quantity': trader['positions_short'][asset]['quantity'],
         'payout': payout,
         'interest_paid': interest,
         'PnL': pnl,
@@ -62,10 +62,12 @@ def trading_decision(trader_passed, timestep, asset, asset_price, max_margin, li
         
     elif asset in trader['positions_short'] and trader['positions_short'][asset]['quantity'] != 0:
         if timestep - trader['positions_short'][asset]['timestep'] >= trader['avg_position_hold'] * np.random.uniform(low=0.8, high=1.4):
+            print('dec to close short')
             decision['short'] = close_short(trader, timestep, asset, asset_price, 0, 'short', pool, rate_params)
         # consider liquidation condition: 1% and consider entry collateral / position = 10% then price went up by 10% hence triggers liquidation hence
         # if collateral / position - (asset_price / entry_price - 1) > liquidation_condition then liquidate
         elif trader['positions_short'][asset]['collateral'] / trader['positions_long'][asset]['quantity'] - (asset_price / trader['positions_short'][asset]['entry_price'] - 1) > liquidation_threshold:
+            print('liquidate short')
             decision['short'] = close_short(trader, timestep, asset, asset_price, 1, 'short', pool, rate_params)
 
     trade_action = random.random() # 1/4 enter a long, 1/4 enter a short, 1/2 do nothing. if position was closed then pass
@@ -74,11 +76,11 @@ def trading_decision(trader_passed, timestep, asset, asset_price, max_margin, li
     if trade_action < 0.25 and decision['long'] == None: # enter a long
         asset_held = trader['liquidity'][asset]
         max_leverage_lot = asset_held * max_margin
-        lot_size = np.random.uniform(low=0.01, high=(trader['risk_factor'] / 10)) * max_leverage_lot
+        lot_size = np.random.uniform(low=0.01, high=(trader['risk_factor'] / 10)) * max_leverage_lot * random.random()
         scal = 1
         while lot_size > available_asset:
             #print('long', lot_size, available_asset)
-            lot_size = np.random.uniform(low=0.01, high=(trader['risk_factor'] / (10 + scal))) * max_leverage_lot
+            lot_size = np.random.uniform(low=0.01, high=(trader['risk_factor'] / (10 + scal))) * max_leverage_lot * random.random()
             scal += 1
             if scal == 20:
                 break
@@ -102,14 +104,16 @@ def trading_decision(trader_passed, timestep, asset, asset_price, max_margin, li
                 'direction': "open"
             }
 
-    elif trade_action > 0.75 and decision['short'] == None: # enter a short
+    elif trade_action > 1 and decision['short'] == None: # enter a short
+        # print('dec to short')
+
         usd_liquidity = trader['liquidity']['USDC'] + trader['liquidity']['USDT']
         max_leverage_lot = (usd_liquidity / asset_price) * max_margin
-        lot_size = np.random.uniform(low=0.01, high=(trader['risk_factor'] / 10)) * max_leverage_lot
+        lot_size = np.random.uniform(low=0.01, high=(trader['risk_factor'] / 10)) * max_leverage_lot * random.random()
         scal = 1
         while lot_size > available_asset:
             #print('short', lot_size, available_asset)
-            lot_size = np.random.uniform(low=0.01, high=(trader['risk_factor'] / (10 + scal))) * max_leverage_lot
+            lot_size = np.random.uniform(low=0.01, high=(trader['risk_factor'] / (10 + scal))) * max_leverage_lot * random.random()
             scal += 1
             if scal == 20:
                 break
@@ -179,7 +183,7 @@ def update_trader(trader, trade_decision, fees, asset, timestep):
             if asset in updated_trader['positions_long']:
                 updated_trader['positions_long'][asset]['entry_price'] = (long_asset['asset_price'] * long_quantity + updated_trader['positions_long'][asset]['entry_price'] * updated_trader['positions_long'][asset]['quantity']) / (long_quantity + updated_trader['positions_long'][asset]['quantity'])
                 updated_trader['positions_long'][asset]['quantity'] += long_quantity
-                updated_trader['positions_long'][asset]['collateral'] += long_collateral - trade_decision['long']['interest']
+                updated_trader['positions_long'][asset]['collateral'] += long_collateral - trade_decision['long']['interest_paid']
                 updated_trader['positions_long'][asset]['timestep'] = timestep
             else:
                 updated_trader['positions_long'][asset] = {
@@ -191,12 +195,12 @@ def update_trader(trader, trade_decision, fees, asset, timestep):
 
         elif trade_decision['long']['direction'] == 'close':
             long_asset = trade_decision['long']
-
             updated_trader['liquidity'][asset] += long_asset['payout']
-            updated_trader['pnl'] += long_asset['usd_pnl']
-
+            updated_trader['PnL'] += long_asset['usd_pnl']
             # detete position
-            del trader['positions_long'][asset]
+            del updated_trader['positions_long'][asset]
+
+
         
     # If there's a short decision
     if trade_decision['short'] != None:
@@ -245,7 +249,7 @@ def update_trader(trader, trade_decision, fees, asset, timestep):
             updated_trader['pnl'] += short_asset['usd_pnl']
 
             # detete position
-            del trader['positions_short'][asset]
+            del updated_trader['positions_short'][asset]
 
     return updated_trader
 
@@ -295,7 +299,7 @@ def update_pool_trade(pool, trader, trade_decision, fees, asset, cur_price):
             updated_pool['total_fees_collected'][asset] += long_fee
 
             # Update loan book
-            del updated_pool['loan_book_longs'][trader['id']]
+            del updated_pool['loan_book_longs'][trader['id']][asset]
 
     # Update the pool according to short decision
     if trade_decision['short'] != None:
@@ -334,7 +338,7 @@ def update_pool_trade(pool, trader, trade_decision, fees, asset, cur_price):
             updated_pool['total_fees_collected'][asset] += short_fee
 
             # Update loan book
-            del updated_pool['loan_book_shorts'][trader['id']]
+            del updated_pool['loan_book_shorts'][str(trader['id'])][asset]
         
     # update pool open pnl based on cur_price and the postition of the trader
     if asset in trader['positions_long']:
