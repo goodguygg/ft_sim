@@ -60,24 +60,28 @@ def postprocessing(df):
         nominal_exposure_eth = 0
         nominal_exposure_sol = 0
         for trader in traders.values():
+            # print(trader)
             if 'BTC' in trader['positions_long'] and 'BTC' in trader['positions_short']:
-                nominal_exposure_btc += sum(trader['positions_long']['BTC']['quantity'] + trader['positions_short']['BTC']['quantity'])
+                # print(f"nom exp btc {trader['positions_long']['BTC']['quantity']} + {trader['positions_short']['BTC']['quantity']}")
+                nominal_exposure_btc += trader['positions_long']['BTC']['quantity'] - trader['positions_short']['BTC']['quantity']
             elif 'BTC' in trader['positions_long']: 
                 nominal_exposure_btc += trader['positions_long']['BTC']['quantity']
             elif 'BTC' in trader['positions_short']:
-                nominal_exposure_btc += trader['positions_short']['BTC']['quantity']
+                nominal_exposure_btc -= trader['positions_short']['BTC']['quantity']
             if 'ETH' in trader['positions_long'] and 'ETH' in trader['positions_short']:
-                nominal_exposure_eth += sum(trader['positions_long']['ETH']['quantity'] + trader['positions_short']['ETH']['quantity'])
+                # print(f"nom exp eth {trader['positions_long']['ETH']['quantity']} + {trader['positions_short']['ETH']['quantity']}")
+                nominal_exposure_eth += trader['positions_long']['ETH']['quantity'] - trader['positions_short']['ETH']['quantity']
             elif 'ETH' in trader['positions_long']:
                 nominal_exposure_eth += trader['positions_long']['ETH']['quantity']
             elif 'ETH' in trader['positions_short']:
-                nominal_exposure_eth += trader['positions_short']['ETH']['quantity']
+                nominal_exposure_eth -= trader['positions_short']['ETH']['quantity']
             if 'SOL' in trader['positions_long'] and 'SOL' in trader['positions_short']:
-                nominal_exposure_sol += sum(trader['positions_long']['SOL']['quantity'] + trader['positions_short']['SOL']['quantity'])
+                # print(f"nom exp sol {trader['positions_long']['SOL']['quantity']} + {trader['positions_short']['SOL']['quantity']}")
+                nominal_exposure_sol += trader['positions_long']['SOL']['quantity'] - trader['positions_short']['SOL']['quantity']
             elif 'SOL' in trader['positions_long']:
                 nominal_exposure_sol += trader['positions_long']['SOL']['quantity']
             elif 'SOL' in trader['positions_short']:
-                nominal_exposure_sol += trader['positions_short']['SOL']['quantity']
+                nominal_exposure_sol -= trader['positions_short']['SOL']['quantity']
 
         # Generate data for each row
         timestep_data = {
@@ -126,7 +130,7 @@ def postprocessing(df):
 
     return data_df
 
-def to_xslx(df):
+def to_xslx(df, name):
 
     wb = openpyxl.Workbook()
     sheet = wb.active
@@ -138,7 +142,7 @@ def to_xslx(df):
             except:
                 pass
             sheet.cell(row=r_idx, column=c_idx, value=value)
-    wb.save(f'run.xlsx')
+    wb.save(f'{name}.xlsx')
 
 def main():
     '''
@@ -147,7 +151,10 @@ def main():
     '''
     df = run()
     df = postprocessing(df)
-    to_xslx(df) 
+    to_xslx(df, 'run') 
+    df = df[df.index % 2 != 0]
+    df = df.reset_index(drop=True)
+    to_xslx(df, 'run_merged') 
     return df
 
 if __name__ == '__main__':
