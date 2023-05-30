@@ -35,7 +35,10 @@ def trading_policy(params, substep, state_history, previous_state):
                 trade_decision = trading_decision(trader, timestep, asset, asset_prices[asset], params['max_margin'], params['liquidation_threshold'], pool, params['rate_params'])
 
                 if trade_decision['long'] == None and trade_decision['short'] == None:
+                    # print('no trade')
                     continue
+
+                # print('trade decision', trade_decision)
 
                 if trade_decision['short'] != None and trade_decision['short']['direction'] == 'open':
                     if trade_decision['short']['swap'] != 0:
@@ -46,6 +49,7 @@ def trading_policy(params, substep, state_history, previous_state):
                         pool_tmp = swap_tokens_pool(pool, tokens_in, trade_decision['short']['swap'], tokens_out, trade_decision['short']['swap'], swap_fee, asset_prices)
 
                         if trader_tmp == -1 or pool_tmp == -1:
+                            # print('swap denied')
                             continue
 
                         trader = trader_tmp
@@ -64,6 +68,7 @@ def trading_policy(params, substep, state_history, previous_state):
                 pool_tmp = update_pool_trade(pool, trader, trade_decision, fees, asset, asset_prices[asset])
 
                 if pool_tmp == -1 or trader_temp == -1:
+                    # print('trade denied')
                     continue
 
                 trader = trader_temp

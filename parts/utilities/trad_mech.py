@@ -55,23 +55,26 @@ def trading_decision(trader_passed, timestep, asset, asset_price, max_margin, li
     if asset in trader['positions_long'] and trader['positions_long'][asset]['quantity'] != 0:
         if timestep - trader['positions_long'][asset]['timestep'] >= trader['avg_position_hold'] * np.random.uniform(low=0.8, high=1.4):
             decision['long'] = close_long(trader, timestep, asset, asset_price, False, pool, rate_params)
-            print(f"long closed {decision['long']['quantity']} of {asset} at {asset_price}")
+            # print(f"long closed {decision['long']['quantity']} of {asset} at {asset_price}")
+
         # consider liquidation condition: 1% and consider entry collateral / position = 10% then if price dropped by 10% hence triggers liquidation hence
         # if collateral / position - (entry_price / asset_price - 1) < liquidation_condition then liquidate
         elif trader['positions_long'][asset]['collateral'] / trader['positions_long'][asset]['quantity'] - (trader['positions_long'][asset]['entry_price'] / asset_price - 1) < liquidation_threshold:
             decision['long'] = close_long(trader, timestep, asset, asset_price, True, pool, rate_params)
-            print(f"long liquidated {decision['long']['quantity']} of {asset} at {asset_price}")
-            print(f"comp {trader['positions_long'][asset]['collateral'] / trader['positions_long'][asset]['quantity']} - {(trader['positions_long'][asset]['entry_price'] / asset_price - 1)} < {liquidation_threshold}")
+            # print(f"long liquidated {decision['long']['quantity']} of {asset} at {asset_price}")
+            # print(f"comp {trader['positions_long'][asset]['collateral'] / trader['positions_long'][asset]['quantity']} - {(trader['positions_long'][asset]['entry_price'] / asset_price - 1)} < {liquidation_threshold}")
         
     elif asset in trader['positions_short'] and trader['positions_short'][asset]['quantity'] != 0:
         if timestep - trader['positions_short'][asset]['timestep'] >= trader['avg_position_hold'] * np.random.uniform(low=0.8, high=1.4):
-            print('dec to close short')
-            decision['short'] = close_short(trader, timestep, asset, asset_price, 0, 'short', pool, rate_params)
+            decision['short'] = close_short(trader, timestep, asset, asset_price, 0, pool, rate_params)
+            # print(f"short closed {decision['short']['quantity']} of {asset} at {asset_price}")
+
         # consider liquidation condition: 1% and consider entry collateral / position = 10% then price went up by 10% hence triggers liquidation hence
         # if collateral / position - (asset_price / entry_price - 1) < liquidation_condition then liquidate
-        elif trader['positions_short'][asset]['collateral'] / trader['positions_long'][asset]['quantity'] - (asset_price / trader['positions_short'][asset]['entry_price'] - 1) < liquidation_threshold:
-            print('liquidate short')
-            decision['short'] = close_short(trader, timestep, asset, asset_price, 1, 'short', pool, rate_params)
+        elif trader['positions_short'][asset]['collateral']['amount'] / (trader['positions_short'][asset]['quantity'] * trader['positions_short'][asset]['entry_price']) - (asset_price / trader['positions_short'][asset]['entry_price'] - 1) < liquidation_threshold:
+            decision['short'] = close_short(trader, timestep, asset, asset_price, 1, pool, rate_params)
+            # print(f"short liquidated {decision['short']['quantity']} of {asset} at {asset_price}")
+            # print(f"comp {trader['positions_short'][asset]['collateral']['amount'] / (trader['positions_short'][asset]['quantity'] * trader['positions_short'][asset]['entry_price'])} - {(asset_price / trader['positions_short'][asset]['entry_price'] - 1)} < {liquidation_threshold}")
 
     trade_action = random.random() # 1/4 enter a long, 1/4 enter a short, 1/2 do nothing. if position was closed then pass
     available_asset = pool['holdings'][asset] - (pool['oi_long'][asset] + pool['oi_short'][asset])
@@ -80,14 +83,14 @@ def trading_decision(trader_passed, timestep, asset, asset_price, max_margin, li
         asset_held = trader['liquidity'][asset]
         max_leverage_lot = asset_held * max_margin
         lot_size = np.random.uniform(low=0.01, high=(trader['risk_factor'] / 10)) * max_leverage_lot * random.random()
-        scal = 1
+        tmp = 0
         while lot_size > available_asset:
             #print('long', lot_size, available_asset)
-            lot_size = np.random.uniform(low=0.01, high=(trader['risk_factor'] / (10 + scal))) * max_leverage_lot * random.random()
-            scal += 1
-            if scal == 20:
+            lot_size = np.random.uniform(low=0.01, high=(trader['risk_factor'] / (10 + tmp))) * max_leverage_lot * random.random()
+            tmp += 1
+            if tmp == 30:
                 break
-        if scal < 20:
+        if tmp < 30:
             interest = 0
             # charge interest if position exits
             if asset in trader['positions_long'] and trader['positions_long'][asset]['quantity'] != 0:
@@ -96,34 +99,38 @@ def trading_decision(trader_passed, timestep, asset, asset_price, max_margin, li
 
             required_collateral = lot_size / max_margin
             collateral_added = 0
+            tmp = 0
             while collateral_added < required_collateral + interest:
                 collateral_added = asset_held * random.random()
+                tmp += 1
+                if tmp == 30:
+                    break
 
-            print(f"longed {lot_size} of {asset} with {collateral_added} of collateral and {collateral_added/lot_size} ratio at {asset_price}")
-            
-            decision['long'] = {
-                'quantity': lot_size,
-                'asset_price': asset_price,
-                'collateral': collateral_added,
-                'interest_paid': interest,
-                'direction': "open"
-            }
+            if tmp < 30:
+                # print(f"longed {lot_size} of {asset} with {collateral_added} of collateral and {collateral_added/lot_size} ratio at {asset_price}")
+                
+                decision['long'] = {
+                    'quantity': lot_size,
+                    'asset_price': asset_price,
+                    'collateral': collateral_added,
+                    'interest_paid': interest,
+                    'direction': "open"
+                }
 
-    elif trade_action > 1 and decision['short'] == None: # enter a short
+    elif trade_action > 0.75 and decision['short'] == None: # enter a short
         # print('dec to short')
 
         usd_liquidity = trader['liquidity']['USDC'] + trader['liquidity']['USDT']
         max_leverage_lot = (usd_liquidity / asset_price) * max_margin
         lot_size = np.random.uniform(low=0.01, high=(trader['risk_factor'] / 10)) * max_leverage_lot * random.random()
-        scal = 1
+        tmp = 0
         while lot_size > available_asset:
             #print('short', lot_size, available_asset)
-            lot_size = np.random.uniform(low=0.01, high=(trader['risk_factor'] / (10 + scal))) * max_leverage_lot * random.random()
-            scal += 1
-            if scal == 20:
+            lot_size = np.random.uniform(low=0.01, high=(trader['risk_factor'] / (10 + tmp))) * max_leverage_lot * random.random()
+            tmp += 1
+            if tmp == 30:
                 break
-        if scal < 20:
-
+        if tmp < 30:
             interest = 0
             # charge interest if position exits
             if asset in trader['positions_short'] and trader['positions_short'][asset]['quantity'] != 0:
@@ -133,29 +140,35 @@ def trading_decision(trader_passed, timestep, asset, asset_price, max_margin, li
 
             required_collateral = (lot_size * asset_price) / max_margin
             collateral_added = 0
+            tmp = 0
             while collateral_added < required_collateral + interest:
-                collateral_added = usd_liquidity * random.random()   
+                collateral_added = usd_liquidity * random.random()  
+                tmp += 1
+                if tmp == 30:
+                    break 
+            if tmp < 30:
+                swap = 0    
+                # Choose the stable to use
+                if asset not in trader['positions_short']:
+                    if trader['liquidity']['USDC'] > collateral_added:
+                        denomination = 'USDC'
+                    elif trader['liquidity']['USDT'] > collateral_added:
+                        denomination = 'USDT'
+                    else:
+                        denomination = 'USDC'
+                        swap = collateral_added - trader['liquidity']['USDC']
 
-            swap = 0    
-            # Choose the stable to use
-            if asset not in trader['positions_short']:
-                if trader['liquidity']['USDC'] > collateral_added:
-                    denomination = 'USDC'
-                elif trader['liquidity']['USDT'] > collateral_added:
-                    denomination = 'USDT'
-                else:
-                    denomination = 'USDC'
-                    swap = collateral_added - trader['liquidity']['USDC']
-            
-            decision['short'] = {
-                'quantity': lot_size,
-                'asset_price': asset_price,
-                'collateral': collateral_added,
-                'interest_paid': interest,
-                'denomination': denomination,
-                'swap': swap,
-                'direction': 'open"'
-            }
+                # print(f"shorted {lot_size} of {asset} with {collateral_added} of collateral and {collateral_added/lot_size} ratio at {asset_price}")
+                
+                decision['short'] = {
+                    'quantity': lot_size,
+                    'asset_price': asset_price,
+                    'collateral': collateral_added,
+                    'interest_paid': interest,
+                    'denomination': denomination,
+                    'swap': swap,
+                    'direction': 'open'
+                }
 
     return decision
 
@@ -251,7 +264,7 @@ def update_trader(trader, trade_decision, fees, asset, timestep):
             short_asset = trade_decision['short']
 
             updated_trader['liquidity'][short_asset['denomination']] += short_asset['payout']
-            updated_trader['pnl'] += short_asset['usd_pnl']
+            updated_trader['PnL'] += short_asset['PnL']
 
             # detete position
             del updated_trader['positions_short'][asset]
@@ -343,7 +356,7 @@ def update_pool_trade(pool, trader, trade_decision, fees, asset, cur_price):
             updated_pool['total_fees_collected'][asset] += short_fee
 
             # Update loan book
-            del updated_pool['loan_book_shorts'][str(trader['id'])][asset]
+            del updated_pool['loan_book_shorts'][trader['id']][asset]
         
     # update pool open pnl based on cur_price and the postition of the trader
     if asset in trader['positions_long']:
