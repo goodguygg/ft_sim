@@ -2,7 +2,7 @@
 
 initial_conditions = {
     'genesis_traders': 30,
-    'genesis_providers': 30,
+    'genesis_providers': 5,
 }
 
 sys_params = {

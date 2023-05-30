@@ -16,9 +16,12 @@ def liquidity_policy(params, substep, state_history, previous_state):
         fees_collected.append({ast: 0 for ast in pool['assets']})
         price_dict = fetch_asset_prices(pool['assets'], timestep)
 
+        # print(pool['yield'])
+
         for liquidity_provider_id in liquidity_providers.keys():
             liquidity_provider = liquidity_providers[liquidity_provider_id]
             asset_prices = get_asset_prices(price_dict)
+            # print("ass vol",asset_volatility)
             provider_decision = liquidity_provider_decision(liquidity_provider, pool['yield'], asset_prices, asset_volatility)
 
             for asset in provider_decision.keys():
@@ -28,7 +31,10 @@ def liquidity_policy(params, substep, state_history, previous_state):
                     # check provider in the pool and change his decision to withdraw all liquidity (assumption that if someone wants out they withdraw all
                     provider_id = liquidity_provider['id']
                     if provider_id in pool['liquidity_providers']:
-                        provider_decision[asset] = pool['liquidity_providers'][provider_id][asset]
+                        if asset in pool['liquidity_providers'][provider_id]:
+                            provider_decision[asset] = pool['liquidity_providers'][provider_id][asset]
+                        else:
+                            continue
                     else:
                         continue
 
@@ -51,7 +57,7 @@ def liquidity_policy(params, substep, state_history, previous_state):
                 pool_tmp = update_pool_liquidity(pool, liquidity_provider, lot_size, asset, provder_open_pnl)
                 if pool_tmp == -1 or prov_temp == -1:
                     continue
-
+                
                 liquidity_provider = prov_temp
                 pool = pool_tmp
                 fees_collected[p][asset] += fee_amount

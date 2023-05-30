@@ -18,17 +18,22 @@ def liquidity_provider_decision(liquidity_provider, pool_yield, asset_prices, as
 
         asset_yield = pool_yield[asset]
 
+        # print(f"yield {asset_yield} add thresh {add_threshold} rem thresh {remove_threshold}")
+
         if asset_yield > add_threshold:
             # The provider adds liquidity proportional to the excess yield
             liquidity_to_add = (liquidity_provider['funds'][asset] / asset_prices[asset]) * 10 * (asset_yield - add_threshold)
             liquidity_provider['funds'][asset] -= liquidity_to_add * asset_prices[asset]
             decision[asset] += liquidity_to_add
+            #print(f"attempt to add {liquidity_to_add} {asset}")
 
         elif asset_yield < remove_threshold:
             # The provider removes liquidity proportional to the shortfall
             liquidity_to_remove = liquidity_provider['liquidity'][asset] * 10 * (remove_threshold - asset_yield)
             liquidity_provider['liquidity'][asset] -= liquidity_to_remove
             decision[asset] -= liquidity_to_remove
+            #print(f"attempt to remove {liquidity_to_remove} {asset}")
+
     
     return decision
 
@@ -79,7 +84,7 @@ def update_provider(pool, liquidity_provider, amount, lot_size, asset, provder_o
         provider['liquidity'][asset] += lot_size
     else:
         return -1
-    
+    # print('provider_updated')
     return provider
 
 def update_pool_liquidity(pool, liquidity_provider, lot_size, asset, provder_open_pnl):
@@ -88,6 +93,7 @@ def update_pool_liquidity(pool, liquidity_provider, lot_size, asset, provder_ope
 
     # If lot_size is negative, we check if the provider has a position in the pool
     if lot_size < 0:
+        print('liquidity removed')
         # If the provider is in the pool and the absolute value of lot_size is less than or equal to 
         # the liquidity they provided for the given asset, we update the pool
         lot_size = lot_size - provder_open_pnl
@@ -99,6 +105,8 @@ def update_pool_liquidity(pool, liquidity_provider, lot_size, asset, provder_ope
             return -1
     else:
         # lot_size is positive
+        print('liquidity added')
+
         tmp_pool['holdings'][asset] += lot_size
         if provider_id in tmp_pool['liquidity_providers']:
             if asset in tmp_pool['liquidity_providers'][provider_id]:

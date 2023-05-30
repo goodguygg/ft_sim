@@ -137,6 +137,11 @@ def trading_policy(params, substep, state_history, previous_state):
 
                 num_of_swaps += 1
             traders[trader_id] = trader
+        # print('here', pool_id, previous_state['pools'])
+        # print('here1', pool_id, previous_state['pools'][pool_id])
+
+        for asset in pool['assets']:
+            pool['yield'][asset] = 0.7 * 365 * (pool['total_fees_collected'][asset] - previous_state['pools'][pool_id]['total_fees_collected'][asset]) / pool['holdings'][asset]
         pools[pool_id] = pool
         p += 1
         

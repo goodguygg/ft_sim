@@ -35,10 +35,11 @@ def get_asset_volatility(assets, timestep):
         except:
             file_path = os.path.join('parts', 'data', f'{asset}.xlsx')
             df = pd.read_excel(file_path)    
-
         try:
             close_prices = df.loc[timestep-10:timestep, 'Close']
-            volatility = close_prices.std()
+            price_std = close_prices.std()
+            price_avg = close_prices.mean()
+            volatility = price_std / price_avg  # Volatility represented as average % standard deviation
         except:
             volatility = None  # If there isn't enough data to compute volatility, return None
 

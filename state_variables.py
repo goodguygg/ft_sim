@@ -16,6 +16,7 @@ def generate_providers(n_providers):
             'remove_threshold': {asset: (thresholds[f'{asset}'] * 0.7) for asset in assets},
         }
         liquidity_providers[i] = liquidity_provider
+        print("theresholds", thresholds)
     return liquidity_providers
 
 def generate_traders(n_traders):

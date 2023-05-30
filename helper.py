@@ -3,6 +3,7 @@ import json
 import os
 import numpy as np
 import random
+import datetime
 
 def defi_lama_mcap_tvl():
     #url = "https://api.llama.fi/protocols"
@@ -46,12 +47,14 @@ def tst():
         print(a)
     else:
         print('none')
-
+def get_current_time():
+    current_time = datetime.datetime.now().time()
+    return current_time
 
 def main():
     #defi_lama_mcap_tvl()
     #list_lib()
-    tst()
+    print(get_current_time())
 
 
 if __name__ == "__main__":
