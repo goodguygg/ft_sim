@@ -360,9 +360,11 @@ def update_pool_trade(pool, trader, trade_decision, fees, asset, cur_price):
         
     # update pool open pnl based on cur_price and the postition of the trader
     if asset in trader['positions_long']:
-        pool['open_pnl_long'][asset] = trader['positions_long'][asset]['entry_price'] * trader['positions_long'][asset]['quantity'] - cur_price * trader['positions_long'][asset]['quantity']
+        updated_pool['open_pnl_long'][asset] = trader['positions_long'][asset]['entry_price'] * trader['positions_long'][asset]['quantity'] - cur_price * trader['positions_long'][asset]['quantity']
+        # print(f"long pnl updated {pool['open_pnl_long'][asset]} = {trader['positions_long'][asset]['entry_price']} * {trader['positions_long'][asset]['quantity']} - {cur_price} * {trader['positions_long'][asset]['quantity']}")
     if asset in trader['positions_short']:
-        pool['open_pnl_short'][asset] = cur_price * trader['positions_short'][asset]['quantity'] - trader['positions_short'][asset]['entry_price'] * trader['positions_short'][asset]['quantity']
+        updated_pool['open_pnl_short'][asset] = cur_price * trader['positions_short'][asset]['quantity'] - trader['positions_short'][asset]['entry_price'] * trader['positions_short'][asset]['quantity']
+        # print(f"short pnl updated {pool['open_pnl_short'][asset]} = {trader['positions_short'][asset]['entry_price']} * {trader['positions_short'][asset]['quantity']} - {cur_price} * {trader['positions_short'][asset]['quantity']}")
 
     return updated_pool
 

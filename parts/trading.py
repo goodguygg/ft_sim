@@ -76,16 +76,16 @@ def trading_policy(params, substep, state_history, previous_state):
                 fees_collected[p][asset] += fees[0] * asset_prices[asset] + fees[1]
 
                 if trade_decision['long'] != None and trade_decision['long']['direction'] == 'open':
-                    print('longed')
+                    # print('longed')
                     num_of_trades += 1
                 if trade_decision['long'] != None and trade_decision['long']['direction'] == 'close':
-                    print('long closed')
+                    # print('long closed')
                     num_of_trades += 1
                 if trade_decision['short'] != None and trade_decision['short']['direction'] == 'open':
-                    print('shorted')
+                    # print('shorted')
                     num_of_trades += 1
                 if trade_decision['short'] != None and trade_decision['short']['direction'] == 'close':
-                    print('short closed')
+                    # print('short closed')
                     num_of_trades += 1
 
                 # pay the fee to lps and treasury, consider the pnl of the providers
