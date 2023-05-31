@@ -11,7 +11,8 @@ def trading_policy(params, substep, state_history, previous_state):
     timestep = previous_state['timestep']
     treasury = copy.deepcopy(previous_state['treasury'])
     liquidations = previous_state['liquidations']
-    num_of_trades = 0
+    num_of_longs = 0
+    num_of_shorts = 0
     num_of_swaps = 0
 
     print(timestep, 'traders')
@@ -77,16 +78,16 @@ def trading_policy(params, substep, state_history, previous_state):
 
                 if trade_decision['long'] != None and trade_decision['long']['direction'] == 'open':
                     # print('longed')
-                    num_of_trades += 1
-                if trade_decision['long'] != None and trade_decision['long']['direction'] == 'close':
+                    num_of_longs += 1
+                # if trade_decision['long'] != None and trade_decision['long']['direction'] == 'close':
                     # print('long closed')
-                    num_of_trades += 1
+                    # num_of_longs += 1
                 if trade_decision['short'] != None and trade_decision['short']['direction'] == 'open':
                     # print('shorted')
-                    num_of_trades += 1
-                if trade_decision['short'] != None and trade_decision['short']['direction'] == 'close':
+                    num_of_shorts += 1
+                # if trade_decision['short'] != None and trade_decision['short']['direction'] == 'close':
                     # print('short closed')
-                    num_of_trades += 1
+                    # num_of_shorts += 1
 
                 # pay the fee to lps and treasury, consider the pnl of the providers
                 if trade_decision['long'] != None:
@@ -152,7 +153,8 @@ def trading_policy(params, substep, state_history, previous_state):
         'treasury': treasury,
         'provider_pnl': provider_pnl,
         'liquidations': liquidations,
-        'num_of_trades': num_of_trades,
+        'num_of_longs': num_of_longs,
+        'num_of_shorts': num_of_shorts,
         'num_of_swaps': num_of_swaps
     }
 
@@ -194,9 +196,14 @@ def treasury_update(params, substep, state_history, previous_state, policy):
     value = policy['treasury']
     return (key, value)
 
-def num_of_trades_update(params, substep, state_history, previous_state, policy):
-    key = 'num_of_trades'
-    value = previous_state['num_of_trades'] + policy['num_of_trades']
+def num_of_longs_update(params, substep, state_history, previous_state, policy):
+    key = 'num_of_longs'
+    value = previous_state['num_of_longs'] + policy['num_of_longs']
+    return (key, value)
+
+def num_of_shorts_update(params, substep, state_history, previous_state, policy):
+    key = 'num_of_shorts'
+    value = previous_state['num_of_shorts'] + policy['num_of_shorts']
     return (key, value)
 
 def num_of_swaps_update(params, substep, state_history, previous_state, policy):

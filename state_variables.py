@@ -69,7 +69,8 @@ genesis_states = {
     'pools': generate_pools(1),
     'treasury': {'BTC': 0, 'SOL': 0, 'ETH': 0, 'USDC': 0, 'USDT': 0},
     'liquidations': 0,
-    'num_of_trades': 0,
+    'num_of_longs': 0,
+    'num_of_shorts': 0,
     'num_of_swaps': 0
     # 'nominal_exposure': 0,
     # 'oracle_attack': False

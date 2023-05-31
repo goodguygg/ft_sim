@@ -53,7 +53,8 @@ def postprocessing(df):
         pools = row['pools']
         treasury = row['treasury']
         liquidations = row['liquidations']
-        num_of_trades = row['num_of_trades']
+        num_of_longs = row['num_of_longs']
+        num_of_shorts = row['num_of_shorts']
         num_of_swaps = row['num_of_swaps']
 
         nominal_exposure_btc = 0
@@ -105,7 +106,8 @@ def postprocessing(df):
             'volume_btc': pools[0]['volume']['BTC'],
             'volume_eth': pools[0]['volume']['ETH'],
             'volume_sol': pools[0]['volume']['SOL'],
-            'num_of_trades': num_of_trades,
+            'num_of_longs': num_of_longs,
+            'num_of_shorts': num_of_shorts,
             'num_of_swaps': num_of_swaps,
             'number_of_liquidations': liquidations,
             'fees_collected_btc': pools[0]['total_fees_collected']['BTC'],

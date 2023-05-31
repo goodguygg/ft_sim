@@ -93,11 +93,11 @@ def update_pool_liquidity(pool, liquidity_provider, lot_size, asset, provder_ope
 
     # If lot_size is negative, we check if the provider has a position in the pool
     if lot_size < 0:
-        print('liquidity removed')
+        # print('liquidity removed')
         # If the provider is in the pool and the absolute value of lot_size is less than or equal to 
         # the liquidity they provided for the given asset, we update the pool
         lot_size = lot_size - provder_open_pnl
-        if provider_id in tmp_pool['liquidity_providers'] and abs(lot_size) <= tmp_pool['liquidity_providers'][provider_id][asset]:
+        if provider_id in tmp_pool['liquidity_providers'] and asset in tmp_pool['liquidity_providers'][provider_id] and abs(lot_size) <= tmp_pool['liquidity_providers'][provider_id][asset]:
             tmp_pool['holdings'][asset] += lot_size
             tmp_pool['liquidity_providers'][provider_id][asset] += lot_size
         else:
@@ -105,7 +105,7 @@ def update_pool_liquidity(pool, liquidity_provider, lot_size, asset, provder_ope
             return -1
     else:
         # lot_size is positive
-        print('liquidity added')
+        # print('liquidity added')
 
         tmp_pool['holdings'][asset] += lot_size
         if provider_id in tmp_pool['liquidity_providers']:

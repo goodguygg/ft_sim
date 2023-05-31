@@ -122,11 +122,11 @@ def trading_decision(trader_passed, timestep, asset, asset_price, max_margin, li
 
         usd_liquidity = trader['liquidity']['USDC'] + trader['liquidity']['USDT']
         max_leverage_lot = (usd_liquidity / asset_price) * max_margin
-        lot_size = np.random.uniform(low=0.01, high=(trader['risk_factor'] / 10)) * max_leverage_lot * random.random()
+        lot_size = np.random.uniform(low=0.01, high=(trader['risk_factor'] / 10)) * max_leverage_lot * (random.random() ** 2)
         tmp = 0
         while lot_size > available_asset:
             #print('short', lot_size, available_asset)
-            lot_size = np.random.uniform(low=0.01, high=(trader['risk_factor'] / (10 + tmp))) * max_leverage_lot * random.random()
+            lot_size = np.random.uniform(low=0.01, high=(trader['risk_factor'] / (10 + tmp))) * max_leverage_lot * (random.random() ** 2)
             tmp += 1
             if tmp == 30:
                 break
