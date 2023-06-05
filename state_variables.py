@@ -5,8 +5,19 @@ def generate_providers(n_providers):
     liquidity_providers = {}
     assets = ['BTC', 'ETH', 'SOL', 'USDC', 'USDT']
     price_dict = fetch_asset_prices(assets, 0)
-    asset_prices = get_asset_prices(price_dict)    
-    for i in range(n_providers):
+    asset_prices = get_asset_prices(price_dict)
+
+    # initialize protocol provider
+    liquidity_providers[0] = {
+            'id': 0,
+            'funds': {'BTC': 0, 'SOL': 0, 'ETH': 0, 'USDC': 0, 'USDT': 0},
+            'liquidity': initial_conditions['initial_liquidity'],
+            'add_threshold': {'BTC': 1000, 'SOL': 1000, 'ETH': 1000, 'USDC': 1000, 'USDT': 1000},
+            'remove_threshold': {'BTC': 1000, 'SOL': 1000, 'ETH': 1000, 'USDC': 1000, 'USDT': 1000},
+            'pool_share': 100
+        }
+
+    for i in range(1, n_providers):
         thresholds = {asset: np.random.uniform(low=0, high=0.1) for asset in assets}
         liquidity_provider = {
             'id': i,
@@ -14,9 +25,10 @@ def generate_providers(n_providers):
             'liquidity': {asset: 0 for asset in assets},
             'add_threshold': thresholds,
             'remove_threshold': {asset: (thresholds[f'{asset}'] * 0.7) for asset in assets},
+            'pool_share': 0
         }
         liquidity_providers[i] = liquidity_provider
-        print("theresholds", thresholds)
+        #print("theresholds", thresholds)
     return liquidity_providers
 
 def generate_traders(n_traders):
@@ -39,12 +51,16 @@ def generate_traders(n_traders):
 
 def generate_pools(n_pools):
     pools = {}
+    assets = ['BTC', 'ETH', 'SOL', 'USDC', 'USDT']
+    price_dict = fetch_asset_prices(assets, 0)
+    asset_prices = get_asset_prices(price_dict)
+
     for i in range(n_pools):
         #token_a, token_b = np.random.choice(tokens, size=2, replace=False)  # Choose two different tokens for the pool
         pool = {
             'id': i,
             'assets': ['BTC', 'ETH', 'SOL', 'USDC', 'USDT'],
-            'holdings': {'BTC': 10, 'SOL': 2500, 'ETH': 110, 'USDC': 450000, 'USDT': 450000},
+            'holdings': initial_conditions['initial_liquidity'],
             'oi_long': {'BTC': 0, 'SOL': 0, 'ETH': 0, 'USDC': 0, 'USDT': 0},
             'oi_short': {'BTC': 0, 'SOL': 0, 'ETH': 0, 'USDC': 0, 'USDT': 0},
             'open_pnl_long': {'BTC': 0, 'SOL': 0, 'ETH': 0, 'USDC': 0, 'USDT': 0},
@@ -54,11 +70,13 @@ def generate_pools(n_pools):
             'yield': {'BTC': 0.01, 'SOL': 0.01, 'ETH': 0.01, 'USDC': 0.01, 'USDT': 0.01},
             'target_ratios': {'BTC': 0.2, 'SOL': 0.2, 'ETH': 0.2, 'USDC': 0.2, 'USDT': 0.2},
             'deviation': 0.05,
-            'liquidity_providers': {},  # {agent_id: liquidity_provided}
+            'liquidity_providers': {"0": initial_conditions['initial_liquidity']},
             'loan_book_longs': {},  # {agent_id: {token: {amount, collateral}}}
             'loan_book_shorts': {},  # {agent_id: {token: {amount, collateral}}}
             'utilization_mult': {'BTC': 0.01, 'SOL': 0.01, 'ETH': 0.01, 'USDC': 0.01, 'USDT': 0.01},
-            'fees': {'open': 0.01, 'close': 0.01}
+            'fees': {'open': 0.01, 'close': 0.01},
+            'lp_shares': 100,
+            'tvl': pool_tvl(initial_conditions['initial_liquidity'], asset_prices)
         }
     pools[i] = pool
     return pools

@@ -19,6 +19,8 @@ def liquidity_policy(params, substep, state_history, previous_state):
         # print(pool['yield'])
 
         for liquidity_provider_id in liquidity_providers.keys():
+            if liquidity_provider_id == 0:
+                continue
             liquidity_provider = liquidity_providers[liquidity_provider_id]
             asset_prices = get_asset_prices(price_dict)
             # print("ass vol",asset_volatility)
@@ -38,6 +40,18 @@ def liquidity_policy(params, substep, state_history, previous_state):
                     else:
                         continue
 
+                # # consider the open pnl of the pool in proportion to the provider
+                provder_open_pnl = (liquidity_provider['liquidity'][asset] / pool['holdings'][asset]) * (pool['open_pnl_long'][asset] + pool['open_pnl_short'][asset])
+                lot_size = provider_decision[asset]
+                tvl = pool_total_holdings(pool, asset_prices)
+                pool_size_change = lot_size * asset_prices[asset] / tvl
+                #print(pool_size_change, lot_size, asset_prices[asset], tvl, pool['lp_shares'])
+                lp_tokens = pool_size_change * pool['lp_shares']
+
+                if lp_tokens < 0 and liquidity_provider['pool_share'] < abs(lp_tokens):
+                    lp_tokens = -liquidity_provider['pool_share']
+                    lot_size = (lp_tokens / pool['lp_shares']) * (tvl / asset_prices[asset])
+
                 # Fetch the fee amount
                 fee_perc = liquidity_fee(pool, asset, provider_decision, asset_prices, params['base_fee'], params['ratio_mult'])
 
@@ -45,23 +59,29 @@ def liquidity_policy(params, substep, state_history, previous_state):
                 if fee_perc == -1:
                     continue
                 
-                # calculate fees
-                fee_amount = provider_decision[asset] * fee_perc
-                lot_size = provider_decision[asset] - fee_amount
+                # calculate the fee
+                fee_amount = lot_size * fee_perc
+                prot_lp = lp_tokens * fee_perc
+                lp_tokens = lp_tokens - prot_lp
 
-                # consider the open pnl of the pool in proportion to the provider
-                provder_open_pnl = (liquidity_provider['liquidity'][asset] / pool['holdings'][asset]) * (pool['open_pnl_long'][asset] + pool['open_pnl_short'][asset]) / asset_prices[asset]
-
+                # print(lot_size, asset, asset_prices[asset], lp_tokens, prot_lp, fee_perc, provder_open_pnl)
                 # update the provider and pool values
-                prov_temp = update_provider(pool, liquidity_provider, provider_decision[asset], lot_size, asset, provder_open_pnl)
-                pool_tmp = update_pool_liquidity(pool, liquidity_provider, lot_size, asset, provder_open_pnl)
+                prov_temp = update_provider(liquidity_provider, lot_size, asset, fee_amount, lp_tokens, provder_open_pnl)
+                prot_tmp = update_provider(liquidity_providers[0], abs(fee_amount), asset, 0, prot_lp, 0)
+                pool_tmp = update_pool_liquidity(pool, liquidity_provider, lot_size, asset, provder_open_pnl, fee_amount, lp_tokens, prot_lp, asset_prices)
                 if pool_tmp == -1 or prov_temp == -1:
+                    # if pool_tmp == -1:
+                    #     print('denied pool', pool_tmp) 
+                    # if prov_temp == -1:
+                    #     print('denied prov', prov_temp) 
                     continue
                 
                 liquidity_provider = prov_temp
+                liquidity_providers[0] = prot_tmp
                 pool = pool_tmp
                 fees_collected[p][asset] += fee_amount
 
+            liquidity_providers[liquidity_provider_id] = liquidity_provider
         pools[pool_id] = pool
         p += 1
         

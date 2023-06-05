@@ -271,10 +271,13 @@ def update_trader(trader, trade_decision, fees, asset, timestep):
 
     return updated_trader
 
-def update_pool_trade(pool, trader, trade_decision, fees, asset, cur_price):
+def update_pool_trade(pool, trader, trade_decision, fees, asset, cur_price, lp_tokens):
     updated_pool = copy.deepcopy(pool)
     long_fee, short_fee = fees
+    long_lp, short_lp = lp_tokens
     available_asset = updated_pool['holdings'][asset] - (updated_pool['oi_long'][asset] + updated_pool['oi_short'][asset])
+
+    # print('trad', updated_pool['lp_shares'], lp_tokens)
 
     # Update the pool according to long decision
     if trade_decision['long'] != None:
@@ -318,6 +321,10 @@ def update_pool_trade(pool, trader, trade_decision, fees, asset, cur_price):
 
             # Update loan book
             del updated_pool['loan_book_longs'][trader['id']][asset]
+    
+        updated_pool['holdings'][asset] += long_fee
+        updated_pool['lp_shares'] += long_lp
+        updated_pool['liquidity_providers']["0"][asset] += long_fee
 
     # Update the pool according to short decision
     if trade_decision['short'] != None:
@@ -333,7 +340,7 @@ def update_pool_trade(pool, trader, trade_decision, fees, asset, cur_price):
             updated_pool['volume'][asset] += short_quantity
 
             # Add to total fees collected
-            updated_pool['total_fees_collected'][asset] += short_fee
+            updated_pool['total_fees_collected'][short_asset['denomination']] += short_fee * cur_price
 
             # Update loan book
             if trader['id'] not in updated_pool['loan_book_shorts']:
@@ -346,17 +353,21 @@ def update_pool_trade(pool, trader, trade_decision, fees, asset, cur_price):
 
         if trade_decision['short']['direction'] == 'close':
             short_asset = trade_decision['short']
-            short_quantity =short_asset['quantity']
+            short_quantity = short_asset['quantity']
             pnl = short_asset['PnL']
 
             # Decrease the open interest and holdings
             updated_pool['oi_short'][asset] -= short_quantity
             updated_pool['holdings'][short_asset['denomination']] -= pnl
 
-            updated_pool['total_fees_collected'][asset] += short_fee
+            updated_pool['total_fees_collected'][short_asset['denomination']] += short_fee * cur_price
 
             # Update loan book
             del updated_pool['loan_book_shorts'][trader['id']][asset]
+
+        updated_pool['holdings'][short_asset['denomination']] += short_fee * cur_price
+        updated_pool['lp_shares'] += short_lp
+        updated_pool['liquidity_providers']["0"][short_asset['denomination']] += short_fee * cur_price
         
     # update pool open pnl based on cur_price and the postition of the trader
     if asset in trader['positions_long']:

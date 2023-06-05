@@ -4,6 +4,7 @@ import os
 import numpy as np
 import random
 import datetime
+import pandas as pd
 
 def defi_lama_mcap_tvl():
     #url = "https://api.llama.fi/protocols"
@@ -41,12 +42,14 @@ def list_lib():
 
 def tst():
 
-    a = 3
+    df = pd.DataFrame({'tst': [1, 2, 3, 4, 5, 6]})
+    df['ema_20'] = df['tst'].ewm(span=4, adjust=False).mean()
 
-    if 1 < a < 5:
-        print(a)
-    else:
-        print('none')
+
+    return df
+
+
+
 def get_current_time():
     current_time = datetime.datetime.now().time()
     return current_time
@@ -54,7 +57,8 @@ def get_current_time():
 def main():
     #defi_lama_mcap_tvl()
     #list_lib()
-    print(get_current_time())
+    #print(get_current_time())
+    print(tst())
 
 
 if __name__ == "__main__":

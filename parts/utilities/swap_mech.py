@@ -55,8 +55,8 @@ def swap_fee_calc(pool, token_in, token_in_amt, token_out, token_out_amt, base_f
 def swap_tokens_trader(trader_passed, token_in, token_in_amt, token_out, token_out_amt, swap_fee):
     trader = copy.deepcopy(trader_passed)
 
-    trader['liquidity'][token_in] -= token_in_amt - swap_fee[0]
-    trader['liquidity'][token_out] += token_out_amt - swap_fee[1]
+    trader['liquidity'][token_in] += token_in_amt - swap_fee[1]
+    trader['liquidity'][token_out] -= token_out_amt - swap_fee[0]
 
     if trader['liquidity'][token_in] < 0 or trader['liquidity'][token_out] < 0:
         return -1
@@ -64,13 +64,16 @@ def swap_tokens_trader(trader_passed, token_in, token_in_amt, token_out, token_o
     return trader
 
 # def trading_fee(pool, asset, trade_decision, rate_params, max_payoff_mult):
-def swap_tokens_pool(pool, token_in, token_in_amt, token_out, token_out_amt, swap_fee, asset_prices):
+def swap_tokens_pool(pool, token_in, token_in_amt, token_out, token_out_amt, swap_fee, asset_prices, lp_tokens):
 
     pool = copy.deepcopy(pool)
+    # print('swap', pool['lp_shares'], lp_tokens)
 
-    pool['holdings'][token_in] -= token_in_amt
-    pool['holdings'][token_out] += token_out_amt
-    pool['total_fees_collected'][token_in] += sum(swap_fee)
+    pool['holdings'][token_in] -= (token_in_amt - swap_fee[1])
+    pool['holdings'][token_out] += token_out_amt + swap_fee[0]
+    pool['total_fees_collected'][token_in] += swap_fee[1]
+    pool['total_fees_collected'][token_out] += swap_fee[0]
+    pool['lp_shares'] += sum(lp_tokens)
 
     tvl = pool_total_holdings(pool, asset_prices)
 

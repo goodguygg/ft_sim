@@ -53,6 +53,12 @@ def pool_total_holdings(pool, asset_prices):
         tvl += holdings[asset] * asset_prices[asset]
     return tvl
 
+def pool_tvl(holdings, asset_prices):
+    tvl = 0
+    for asset in holdings.keys():
+        tvl += holdings[asset] * asset_prices[asset]
+    return tvl
+
 def get_account_value(trader, asset_prices):
     total_value = sum([trader['liquidity'][asset] * asset_prices[asset] for asset in trader['liquidity'].keys()])
     total_value += sum([(trader['positions'][asset][0] * asset_prices[asset] - trader['loans'][asset][0]) for asset in trader['positions'].keys()])

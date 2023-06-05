@@ -88,6 +88,7 @@ def postprocessing(df):
         timestep_data = {
             'number_of_traders': len(traders),
             'number_of_liquidity_providers': len(liquidity_providers),
+            'pool_lp_tokens': pools[0]['lp_shares'],
             'pool_balance_btc': pools[0]['holdings']['BTC'],
             'pool_balance_eth': pools[0]['holdings']['ETH'],
             'pool_balance_sol': pools[0]['holdings']['SOL'],
