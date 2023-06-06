@@ -13,14 +13,15 @@ def fetch_data():
         df["Date"] = [str(val)[:-15] for val in df['Date']]
         df.drop(columns=['Dividends', 'Stock Splits'], inplace=True)
 
-        df.to_excel(f"{ticker.replace('-USD', '')}.xlsx", index=False)
+        df.to_excel(f"{ticker.replace('-USD', '22')}.xlsx", index=False)
 
 def add_ema():
     tickers = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'USDC-USD', 'USDT-USD']
     for ticker in tickers:
-        df = pd.read_excel(f"{ticker.replace('-USD', '')}.xlsx")
+        df = pd.read_excel(f"{ticker.replace('-USD', '22')}.xlsx")
         df['ema'] = df['Close'].ewm(span=7, adjust=False).mean()
-        df.to_excel(f"{ticker.replace('-USD', '')}.xlsx", index=False)  
+        df.to_excel(f"{ticker.replace('-USD', '22')}.xlsx", index=False)  
 
 if __name__ == '__main__':
+    fetch_data()
     add_ema()

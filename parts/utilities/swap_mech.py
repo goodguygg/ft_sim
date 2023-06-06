@@ -24,14 +24,14 @@ def swap_fee_calc(pool, token_in, token_in_amt, token_out, token_out_amt, base_f
     where A = (fee max - fee optional) / (min ratio * 100 - target ratio * 100) ^ 3
     
     '''
-
+    pool = copy.deepcopy(pool)
     # return ratio_fee
     tvl = pool_total_holdings(pool, asset_prices)
     fee_max = om_fees[0]
     fee_optimal = om_fees[1]
 
     target_ratio_in = pool['target_ratios'][token_in]
-    post_trade_ratio_in = (pool['holdings'][token_in] + token_in_amt) * asset_prices[token_in] / tvl
+    post_trade_ratio_in = (pool['holdings'][token_in] + token_in_amt) * float(asset_prices[token_in][0]) / tvl
     max_ratio_in = target_ratio_in + pool['deviation']
 
     # Calculate the pool receiving swap fee
@@ -39,7 +39,7 @@ def swap_fee_calc(pool, token_in, token_in_amt, token_out, token_out_amt, base_f
     receiving_fee = A_receiving * (post_trade_ratio_in * 100 - target_ratio_in * 100) ** 3 + fee_optimal
 
     target_ratio_out = pool['target_ratios'][token_out]
-    post_trade_ratio_out = (pool['holdings'][token_out] - token_out_amt) * asset_prices[token_out] / tvl
+    post_trade_ratio_out = (pool['holdings'][token_out] - token_out_amt) * float(asset_prices[token_out][0]) / tvl
     min_ratio_out = target_ratio_out - pool['deviation']
 
     # Calculate the pool paying swap fee
@@ -74,11 +74,13 @@ def swap_tokens_pool(pool, token_in, token_in_amt, token_out, token_out_amt, swa
     pool['total_fees_collected'][token_in] += swap_fee[1]
     pool['total_fees_collected'][token_out] += swap_fee[0]
     pool['lp_shares'] += sum(lp_tokens)
+    pool['lps']['genesis'][token_in] += swap_fee[1]
+    pool['lps']['genesis'][token_out] += swap_fee[0]
 
     tvl = pool_total_holdings(pool, asset_prices)
 
-    post_ratio_in = pool['holdings'][token_in] * asset_prices[token_in] / tvl
-    post_ratio_out = pool['holdings'][token_out] * asset_prices[token_out] / tvl
+    post_ratio_in = pool['holdings'][token_in] * asset_prices[token_in][0] / tvl
+    post_ratio_out = pool['holdings'][token_out] * asset_prices[token_out][0] / tvl
 
 
     if pool['target_ratios'][token_in] - pool['deviation'] < post_ratio_in < pool['target_ratios'][token_out] + pool['deviation'] and pool['target_ratios'][token_in] - pool['deviation'] < post_ratio_out < pool['target_ratios'][token_out] + pool['deviation']:
@@ -94,12 +96,12 @@ def swap_decision(trader_passed, asset, asset_prices):
     if swap_action < 0.2: # buy
         swap_in = np.random.uniform(low=0.01, high=0.99) * asset_held
         swap_out_asset = random.choice(list(asset_prices.keys()))
-        swap_out = swap_in * asset_prices[asset] / asset_prices[swap_out_asset]
+        swap_out = swap_in * asset_prices[asset][0] / asset_prices[swap_out_asset][0]
         return {'swap_in': [swap_in, asset], 'swap_out': [swap_out, swap_out_asset]}
     elif swap_action > 0.8: # sell
         swap_out = np.random.uniform(low=0.01, high=0.99) * asset_held
         swap_in_asset = random.choice(list(asset_prices.keys()))
-        swap_in = swap_out * asset_prices[asset] / asset_prices[swap_in_asset]
+        swap_in = swap_out * asset_prices[asset][0] / asset_prices[swap_in_asset][0]
         return {'swap_in': [swap_in, swap_in_asset], 'swap_out': [swap_out, asset]}
     else:
         return None

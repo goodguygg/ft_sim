@@ -95,8 +95,8 @@ def postprocessing(df):
             'pool_balance_usdc': pools[0]['holdings']['USDC'],
             'pool_balance_usdt': pools[0]['holdings']['USDT'],
             'cum_pnl_traders': sum(trader['PnL'] for trader in traders.values()),
-            'max_pnl_traders': max(trader['PnL'] for trader in traders.values()),
-            'min_pnl_traders': min(trader['PnL'] for trader in traders.values()),
+            # 'max_pnl_traders': max(trader['PnL'] for trader in traders.values()),
+            # 'min_pnl_traders': min(trader['PnL'] for trader in traders.values()),
             #'cum_apy_providers': sum(lp['yield'] for lp in liquidity_providers.values()),  # Assuming each LP has a 'yield' key
             'oi_long_btc': pools[0]['oi_long']['BTC'],
             'oi_long_eth': pools[0]['oi_long']['ETH'],
