@@ -11,7 +11,7 @@ partial_state_update_block = [
         'variables': {
             'liquidity_providers': liquidity_providers_update,
             'pools': pool_liquidity_update,
-            'treasury': treasury_liquidity_update,
+            # 'treasury': treasury_liquidity_update,
         }
     },
     {
@@ -24,12 +24,10 @@ partial_state_update_block = [
             'pools': pool_trading_update,
             'liquidations': liquidations_uodate,
             'liquidity_providers': distribution_providers_update,
-            'treasury': treasury_update,
+            # 'treasury': treasury_update,
             'num_of_longs': num_of_longs_update,
             'num_of_shorts': num_of_shorts_update,
-
             'num_of_swaps': num_of_swaps_update,
-
             # 'nominal_exposure': nominal_exposure_update,
             # 'oracle_attack': oracle_attack_update
         }

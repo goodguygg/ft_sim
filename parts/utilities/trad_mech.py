@@ -3,6 +3,50 @@ from .utils import *
 import copy
 import numpy as np
 
+def trading_fee(pool, asset, trade_decision, rate_params, max_payoff_mult):
+    # if new_utilization < custody.borrow_rate.optimal_utilization 
+    #     entry_fee = (custody.fees.open_position * position.size)
+    # else
+    #     entry_fee = custody.fees.open_position * utilization_fee * size
+
+    # where:
+    #     utilization_fee = 1 + custody.fees.utilization_mult * (new_utilization - optimal_utilization) / (1 - optimal_utilization);
+    #     optimum_utilization = optimum_utilization from custody
+    #     new_utilization = custody.assets.locked + (position.size * custody.pricing.max_payoff_mult)
+    long_fee = 0
+    short_fee = 0
+    optimal_utilization = rate_params[0]
+
+    # Handle long
+    if trade_decision['long'] != None:
+        # Handle open
+        if trade_decision['long']['direction'] == 'open':
+            new_utilization = pool['oi_long'][asset] + (trade_decision['long']['quantity'] * max_payoff_mult)
+            if new_utilization < optimal_utilization:
+                long_fee = pool['fees']['open'] * trade_decision['long']['quantity']
+            else:
+                utilization_fee = (1 + pool['utilization_mult'][asset] * (new_utilization - optimal_utilization) / (1 - optimal_utilization))/100
+                long_fee = pool['fees']['open'] * utilization_fee * trade_decision['long']['quantity']
+        # Handle close
+        elif trade_decision['long']['direction'] == 'close':
+            long_fee = pool['fees']['close'] * trade_decision['long']['quantity']
+
+    # Handle short
+    if trade_decision['short'] != None:
+        # Handle open
+        if trade_decision['short']['direction'] == 'open':
+            new_utilization = pool['oi_short'][asset] + (trade_decision['short']['quantity'] * max_payoff_mult)
+            if new_utilization < optimal_utilization:
+                long_fee = pool['fees']['open'] * trade_decision['short']['quantity']
+            else:
+                utilization_fee = (1 + pool['utilization_mult'][asset] * (new_utilization - optimal_utilization) / (1 - optimal_utilization))/100
+                long_fee = pool['fees']['open'] * utilization_fee * trade_decision['short']['quantity']
+        # Handle close
+        elif trade_decision['short']['direction'] == 'close':
+            short_fee = pool['fees']['close'] * trade_decision['short']['quantity']
+
+    return [long_fee, short_fee]
+
 def close_long(trader, timestep, asset, asset_price, liquidated, pool, rate_params):
     trader = copy.deepcopy(trader)
 
@@ -70,6 +114,8 @@ def trading_decision(trader_passed, timestep, asset, asset_pricing, max_margin, 
         duration = timestep - trader[f'positions_long'][asset]['timestep']
         interest = calculate_interest(trader[f'positions_long'][asset]['quantity'], duration, asset, pool, rate_params)
         payout = trader[f'positions_long'][asset]['collateral'] - interest + pnl
+        if payout < 0:
+            print('cl', payout, trader[f'positions_long'][asset]['collateral'], interest, pnl)
         if payout / trader['positions_long'][asset]['quantity'] < liquidation_threshold:
             decision['long'] = {
                 'quantity': trader['positions_long'][asset]['quantity'],
@@ -98,6 +144,8 @@ def trading_decision(trader_passed, timestep, asset, asset_pricing, max_margin, 
         duration = timestep - trader[f'positions_short'][asset]['timestep']
         interest = calculate_interest(trader[f'positions_short'][asset]['quantity'], duration, asset, pool, rate_params)
         payout = trader[f'positions_short'][asset]['collateral']['amount'] - interest + pnl
+        if payout < 0:
+            print('cs', payout, trader[f'positions_short'][asset]['collateral']['amount'], interest, pnl)
         if payout / trader['positions_short'][asset]['quantity'] < liquidation_threshold:
             decision['short'] = {
                 'quantity': trader['positions_short'][asset]['quantity'],
@@ -119,12 +167,12 @@ def trading_decision(trader_passed, timestep, asset, asset_pricing, max_margin, 
     trade_action = random.random() # 1/4 enter a long, 1/4 enter a short, 1/2 do nothing. if position was closed then pass
     available_asset = pool['holdings'][asset] - (pool['oi_long'][asset] + pool['oi_short'][asset])
 
-    if trade_action < 0.25 and decision['long'] == None: # enter a long
+    if trade_action < 0.1 and decision['long'] == None: # enter a long
         asset_held = trader['liquidity'][asset]
         max_leverage_lot = asset_held * max_margin
         lot_size = np.random.uniform(low=0.01, high=(trader['risk_factor'] / 10)) * max_leverage_lot * random.random()
         tmp = 0
-        while lot_size > available_asset and lot_size > 0:
+        while lot_size > available_asset or lot_size < 0:
             #print('long', lot_size, available_asset)
             lot_size = np.random.uniform(low=0.01, high=(trader['risk_factor'] / (10 + tmp))) * max_leverage_lot * random.random()
             tmp += 1
@@ -156,17 +204,17 @@ def trading_decision(trader_passed, timestep, asset, asset_pricing, max_margin, 
                     'interest_paid': interest,
                     'direction': "open"
                 }
-                # print(f"long {asset} {lot_size} at {asset_price}")
+                # print(f"long {asset} {lot_size} at {ol_price} asset held {asset_held}")
 
 
-    elif trade_action > 0.75 and decision['short'] == None: # enter a short
+    elif trade_action > 0.9 and decision['short'] == None: # enter a short
         # print('dec to short')
         os_price = spot_price if spot_price < ema_price else ema_price
         usd_liquidity = trader['liquidity']['USDC'] + trader['liquidity']['USDT']
         max_leverage_lot = (usd_liquidity / os_price) * max_margin
         lot_size = np.random.uniform(low=0.01, high=(trader['risk_factor'] / 10)) * max_leverage_lot * (random.random() ** 2)
         tmp = 0
-        while lot_size > available_asset and lot_size > 0:
+        while lot_size > available_asset or lot_size < 0:
             #print('short', lot_size, available_asset)
             lot_size = np.random.uniform(low=0.01, high=(trader['risk_factor'] / (10 + tmp))) * max_leverage_lot * (random.random() ** 2)
             tmp += 1
@@ -211,90 +259,9 @@ def trading_decision(trader_passed, timestep, asset, asset_pricing, max_margin, 
                     'swap': swap,
                     'direction': 'open'
                 }
-                # print(f"short {asset} {lot_size} at {asset_price}")
+                # print(f"short {asset} {lot_size} at {os_price}")
 
     return decision
-
-def update_trader_open_long(trader, trade_decision, fees, asset, timestep):
-    updated_trader = copy.deepcopy(trader)
-
-    # If there's a long decision
-    long_asset = trade_decision['long']
-    long_fee = fees[0]
-    long_quantity = long_asset['quantity']
-    long_collateral = long_asset['collateral']
-    
-    # Deduct the fee from the liquidity
-    updated_trader['liquidity'][asset] -= long_fee
-
-    # Check if enough liquidity for the transaction
-    if updated_trader['liquidity'][asset] < 0:
-        return -1
-
-    # Deduct the collateral from the liquidity
-    updated_trader['liquidity'][asset] -= long_collateral
-
-    # Check if enough liquidity for the transaction
-    if updated_trader['liquidity'][asset] < 0:
-        return -1
-
-    # Update the positions
-    if asset in updated_trader['positions_long']:
-        updated_trader['positions_long'][asset]['entry_price'] = (long_asset['asset_price'] * long_quantity + updated_trader['positions_long'][asset]['entry_price'] * updated_trader['positions_long'][asset]['quantity']) / (long_quantity + updated_trader['positions_long'][asset]['quantity'])
-        updated_trader['positions_long'][asset]['quantity'] += long_quantity
-        updated_trader['positions_long'][asset]['collateral'] += long_collateral - trade_decision['long']['interest_paid']
-        updated_trader['positions_long'][asset]['timestep'] = timestep
-    else:
-        updated_trader['positions_long'][asset] = {
-            'quantity': long_quantity,
-            'entry_price': long_asset['asset_price'],
-            'collateral': long_collateral,
-            'timestep': timestep
-        }
-    return updated_trader
-
-def update_trader_open_short(trader, trade_decision, fees, asset, timestep):
-    updated_trader = copy.deepcopy(trader)
-
-    short_asset = trade_decision['short']
-    short_fee = fees[1]
-    short_quantity = short_asset['quantity']
-    short_collateral = short_asset['collateral']
-    denomination = short_asset['denomination']
-
-    # Deduct the fee from the liquidity
-    updated_trader['liquidity'][denomination] -= short_fee
-
-    # Check if enough liquidity for the transaction
-    if updated_trader['liquidity'][denomination] < 0:
-        return -1
-
-    # Deduct the collateral from the liquidity
-    updated_trader['liquidity'][denomination] -= short_collateral
-
-    # Check if enough liquidity for the transaction
-    if updated_trader['liquidity'][denomination] < 0:
-        return -1
-
-    # Update the positions
-    if asset in updated_trader['positions_short']:
-        updated_trader['positions_short'][asset]['entry_price'] = (short_asset['asset_price'] * short_quantity + updated_trader['positions_short'][asset]['entry_price'] * updated_trader['positions_short'][asset]['quantity']) / (short_quantity + updated_trader['positions_short'][asset]['quantity'])
-        updated_trader['positions_short'][asset]['quantity'] += short_quantity
-        updated_trader['positions_short'][asset]['collateral']['amount'] += short_collateral
-        updated_trader['positions_short'][asset]['collateral']['denomination'] = denomination
-        updated_trader['positions_short'][asset]['timestep'] = timestep  # {token: {quantity: 0, entry_price: 0, collateral: {amount: 0, denomination: "USDC"}, timestep: 0}}
-    else:
-        updated_trader['positions_short'][asset] = {
-            'quantity': short_quantity,
-            'entry_price': short_asset['asset_price'],
-            'collateral': {
-                'amount': short_collateral,
-                'denomination': denomination
-            },
-            'timestep': timestep
-        }
-    return updated_trader
-
 
 def update_trader(trader, trade_decision, fees, asset, timestep):
     updated_trader = copy.deepcopy(trader)
@@ -435,46 +402,375 @@ def update_pool_trade(pool, trader, trade_decision, fees, asset, cur_price, lp_t
 
     return updated_pool
 
-def trading_fee(pool, asset, trade_decision, rate_params, max_payoff_mult):
-    # if new_utilization < custody.borrow_rate.optimal_utilization 
-    #     entry_fee = (custody.fees.open_position * position.size)
-    # else
-    #     entry_fee = custody.fees.open_position * utilization_fee * size
+def update_trader_open_long(trader, trade_decision, fees, asset, timestep):
+    updated_trader = copy.deepcopy(trader)
 
-    # where:
-    #     utilization_fee = 1 + custody.fees.utilization_mult * (new_utilization - optimal_utilization) / (1 - optimal_utilization);
-    #     optimum_utilization = optimum_utilization from custody
-    #     new_utilization = custody.assets.locked + (position.size * custody.pricing.max_payoff_mult)
-    long_fee = 0
-    short_fee = 0
-    optimal_utilization = rate_params[0]
+    # If there's a long decision
+    long_asset = trade_decision['long']
+    long_fee = fees[0]
+    long_quantity = long_asset['quantity']
+    long_collateral = long_asset['collateral']
+    
+    # Deduct the collateral, fee from the liquidity and subtract interest
+    updated_trader['liquidity'][asset] -= long_fee
+    updated_trader['liquidity'][asset] -= trade_decision['long']['interest_paid']
+    updated_trader['liquidity'][asset] -= long_collateral
 
-    # Handle long
+    # Check if enough liquidity for the transaction
+    if updated_trader['liquidity'][asset] < 0:
+        return -1
+
+    # Update the positions
+    if asset in updated_trader['positions_long']:
+        updated_trader['positions_long'][asset]['entry_price'] = (long_asset['asset_price'] * long_quantity + updated_trader['positions_long'][asset]['entry_price'] * updated_trader['positions_long'][asset]['quantity']) / (long_quantity + updated_trader['positions_long'][asset]['quantity'])
+        updated_trader['positions_long'][asset]['quantity'] += long_quantity
+        updated_trader['positions_long'][asset]['collateral'] += long_collateral
+        updated_trader['positions_long'][asset]['timestep'] = timestep
+    else:
+        updated_trader['positions_long'][asset] = {
+            'quantity': long_quantity,
+            'entry_price': long_asset['asset_price'],
+            'collateral': long_collateral,
+            'timestep': timestep
+        }
+    return updated_trader
+
+def update_trader_open_short(trader, trade_decision, fees, asset, timestep):
+    updated_trader = copy.deepcopy(trader)
+
+    short_asset = trade_decision['short']
+    short_fee = fees[1]
+    short_quantity = short_asset['quantity']
+    short_collateral = short_asset['collateral']
+    denomination = short_asset['denomination']
+
+    # Deduct the collateral, fee and interest from the liquidity
+    updated_trader['liquidity'][denomination] -= short_fee
+    updated_trader['liquidity'][asset] -= trade_decision['short']['interest_paid']
+    updated_trader['liquidity'][denomination] -= short_collateral
+
+    # Check if enough liquidity for the transaction
+    if updated_trader['liquidity'][denomination] < 0:
+        return -1
+
+    # Update the positions
+    if asset in updated_trader['positions_short']:
+        updated_trader['positions_short'][asset]['entry_price'] = (short_asset['asset_price'] * short_quantity + updated_trader['positions_short'][asset]['entry_price'] * updated_trader['positions_short'][asset]['quantity']) / (short_quantity + updated_trader['positions_short'][asset]['quantity'])
+        updated_trader['positions_short'][asset]['quantity'] += short_quantity
+        updated_trader['positions_short'][asset]['collateral']['amount'] += short_collateral
+        updated_trader['positions_short'][asset]['collateral']['denomination'] = denomination
+        updated_trader['positions_short'][asset]['timestep'] = timestep  # {token: {quantity: 0, entry_price: 0, collateral: {amount: 0, denomination: "USDC"}, timestep: 0}}
+    else:
+        updated_trader['positions_short'][asset] = {
+            'quantity': short_quantity,
+            'entry_price': short_asset['asset_price'],
+            'collateral': {
+                'amount': short_collateral,
+                'denomination': denomination
+            },
+            'timestep': timestep
+        }
+    return updated_trader
+
+def update_pool_open_long(pool, trader, asset, trade_decision, fees):
+    updated_pool = copy.deepcopy(pool)
+
+    # Check if the pool has enough space for the trade
+    available_asset = updated_pool['holdings'][asset] - (updated_pool['oi_long'][asset] + updated_pool['oi_short'][asset])
+
+    if available_asset < trade_decision['long']['quantity']:
+        return -1
+
+    # Increase the open interest
+    updated_pool['oi_long'][asset] += trade_decision['long']['quantity']
+    updated_pool['volume'][asset] += trade_decision['long']['quantity']
+    updated_pool['total_fees_collected'][asset] += fees[0] + trade_decision['long']['interest_paid']
+
+    # Update loan book
+    if trader['id'] not in updated_pool['loan_book_longs']:
+        updated_pool['loan_book_longs'][trader['id']] = {}
+    if asset not in updated_pool['loan_book_longs'][trader['id']]:
+        updated_pool['loan_book_longs'][trader['id']][asset] = {'amount': trade_decision['long']['quantity'], 'collateral': trade_decision['long']['collateral']}
+    else:
+        updated_pool['loan_book_longs'][trader['id']][asset]['amount'] += trade_decision['long']['quantity']
+        updated_pool['loan_book_longs'][trader['id']][asset]['collateral'] += trade_decision['long']['collateral']
+
+    return updated_pool
+
+def update_pool_open_short(pool, trader, asset, trade_decision, fees):
+    updated_pool = copy.deepcopy(pool)
+
+    # Check if the pool has enough space for the trade
+    available_asset = updated_pool['holdings'][asset] - (updated_pool['oi_long'][asset] + updated_pool['oi_short'][asset])
+
+    if available_asset < trade_decision['short']['quantity']:
+        return -1
+    
+    # Increase the open interest
+    updated_pool['oi_short'][asset] += trade_decision['short']['quantity']
+    updated_pool['volume'][asset] += trade_decision['short']['quantity']
+    updated_pool['total_fees_collected'][trade_decision['short']['denomination']] += fees[1] + trade_decision['short']['interest_paid']
+
+    # Update loan book
+    if trader['id'] not in updated_pool['loan_book_shorts']:
+        updated_pool['loan_book_shorts'][trader['id']] = {}
+    if asset not in updated_pool['loan_book_shorts'][trader['id']]:
+        updated_pool['loan_book_shorts'][trader['id']][asset] = {'amount': trade_decision['short']['quantity'], 'collateral': trade_decision['short']['collateral']}
+    else:
+        updated_pool['loan_book_shorts'][trader['id']][asset]['amount'] += trade_decision['short']['quantity']
+        updated_pool['loan_book_shorts'][trader['id']][asset]['collateral'] += trade_decision['short']['collateral']
+
+    return updated_pool
+
+def update_gen_lp(updated_pool, tmp_gen_lp, fee, interest, asset, asset_prices):
+    updated_lp_pool = copy.deepcopy(updated_pool)
+    updated_gen_lp = copy.deepcopy(tmp_gen_lp)
+
+    lot_size = (fee + interest) * 0.3
+
+    # calculate amount of lp tokens
+    tvl = pool_tvl_max(updated_lp_pool['holdings'], asset_prices)
+    adding_price = asset_prices[asset][0] if asset_prices[asset][0] < asset_prices[asset][1] else asset_prices[asset][1]
+    pool_size_change = lot_size * adding_price / tvl
+    lp_tokens = pool_size_change * updated_lp_pool['lp_shares']
+
+    # Add the fee, interest and tokens to the genesis lp
+    updated_gen_lp['liquidity'][asset] += lot_size
+    updated_gen_lp['pool_share'] += lp_tokens
+
+    # add fee, interest and tokens to the pool
+    updated_lp_pool['holdings'][asset] += lot_size
+    updated_lp_pool['lp_shares'] += lp_tokens
+    updated_lp_pool['lps']["genesis"][asset] += lot_size
+
+    return [updated_lp_pool, updated_gen_lp]
+
+def update_trader_close_long(trader, trade_decision, asset):
+
+    updated_trader = copy.deepcopy(trader)
+
+    updated_trader['liquidity'][asset] += trade_decision['long']['payout']
+    updated_trader['PnL'] += trade_decision['long']['usd_pnl']
+    # detete position
+    del updated_trader['positions_long'][asset]
+
+    return updated_trader
+
+def update_trader_close_short(trader, trade_decision, asset):
+
+    updated_trader = copy.deepcopy(trader)
+
+    updated_trader['liquidity'][trade_decision['short']['denomination']] += trade_decision['short']['payout']
+    updated_trader['PnL'] += trade_decision['short']['PnL']
+    # detete position
+    del updated_trader['positions_short'][asset]
+
+    return updated_trader
+
+def update_pool_close_long(pool, trader, asset, trade_decision, fees):
+    updated_pool = copy.deepcopy(pool)
+
+    # Decrease the open interest
+    updated_pool['oi_long'][asset] -= trade_decision['long']['quantity']
+    updated_pool['volume'][asset] += trade_decision['long']['quantity']
+    updated_pool['total_fees_collected'][asset] += fees[0] + trade_decision['long']['interest_paid']
+    updated_pool['holdings'][asset] -= trade_decision['long']['PnL']
+
+    # Update loan book
+    if trader['id'] not in updated_pool['loan_book_longs']:
+        return -1
+    if asset not in updated_pool['loan_book_longs'][trader['id']]:
+        return -1
+    else:
+        del updated_pool['loan_book_longs'][trader['id']][asset]
+        if updated_pool['loan_book_longs'][trader['id']] == {}:
+            del updated_pool['loan_book_longs'][trader['id']]
+
+    return updated_pool
+
+def update_pool_close_short(pool, trader, asset, trade_decision, fees):
+    updated_pool = copy.deepcopy(pool)
+
+    # Decrease the open interest
+    updated_pool['oi_short'][asset] -= trade_decision['short']['quantity']
+    updated_pool['volume'][asset] += trade_decision['short']['quantity']
+    updated_pool['total_fees_collected'][trade_decision['short']['denomination']] += fees[1] + trade_decision['short']['interest_paid']
+    updated_pool['holdings'][trade_decision['short']['denomination']] -= trade_decision['short']['PnL']
+
+    # Update loan book
+    if trader['id'] not in updated_pool['loan_book_shorts']:
+        return -1
+    if asset not in updated_pool['loan_book_shorts'][trader['id']]:
+        return -1
+    else:
+        del updated_pool['loan_book_shorts'][trader['id']][asset]
+        if updated_pool['loan_book_shorts'][trader['id']] == {}:
+            del updated_pool['loan_book_shorts'][trader['id']]
+    
+    return updated_pool
+
+
+def execute_trade(pool, trader, gen_lp, trade_decision, fees, asset, timestep, asset_prices):
+    tmp_pool = copy.deepcopy(pool)
+    tmp_trader = copy.deepcopy(trader)
+    tmp_gen_lp = copy.deepcopy(gen_lp)
+
     if trade_decision['long'] != None:
-        # Handle open
         if trade_decision['long']['direction'] == 'open':
-            new_utilization = pool['oi_long'][asset] + (trade_decision['long']['quantity'] * max_payoff_mult)
-            if new_utilization < optimal_utilization:
-                long_fee = pool['fees']['open'] * trade_decision['long']['quantity']
-            else:
-                utilization_fee = (1 + pool['utilization_mult'][asset] * (new_utilization - optimal_utilization) / (1 - optimal_utilization))/100
-                long_fee = pool['fees']['open'] * utilization_fee * trade_decision['long']['quantity']
-        # Handle close
+            # Update the trader subtract the liquidity, add position with collateral, if position already exists subtract interest
+            updated_trader = update_trader_open_long(tmp_trader, trade_decision, fees, asset, timestep)
+            if updated_trader != -1:
+                # Update the pool
+                updated_pool = update_pool_open_long(tmp_pool, updated_trader, asset, trade_decision, fees)
+                if updated_pool != -1:
+                    # Update the genesis lp and pool
+                    updated_pool, updated_gen_lp = update_gen_lp(updated_pool, tmp_gen_lp, fees[0], trade_decision['long']['interest_paid'], asset, asset_prices)
+                    tmp_pool = updated_pool
+                    tmp_trader = updated_trader
+                    tmp_gen_lp = updated_gen_lp
+
         elif trade_decision['long']['direction'] == 'close':
-            long_fee = pool['fees']['close'] * trade_decision['long']['quantity']
+            # Update the trader subtract the liquidity, add position with collateral, if position already exists subtract interest
+            updated_trader = update_trader_close_long(tmp_trader, trade_decision, asset)
+            updated_pool = update_pool_close_long(tmp_pool, updated_trader, asset, trade_decision, fees)
+            if updated_pool != -1:
+                updated_pool, updated_gen_lp = update_gen_lp(updated_pool, tmp_gen_lp, fees[0], trade_decision['long']['interest_paid'], asset, asset_prices)
+                tmp_pool = updated_pool
+                tmp_trader = updated_trader
+                tmp_gen_lp = updated_gen_lp
 
-    # Handle short
-    if trade_decision['short'] != None:
-        # Handle open
+
+    elif trade_decision['short'] != None:
         if trade_decision['short']['direction'] == 'open':
-            new_utilization = pool['oi_short'][asset] + (trade_decision['short']['quantity'] * max_payoff_mult)
-            if new_utilization < optimal_utilization:
-                long_fee = pool['fees']['open'] * trade_decision['short']['quantity']
-            else:
-                utilization_fee = (1 + pool['utilization_mult'][asset] * (new_utilization - optimal_utilization) / (1 - optimal_utilization))/100
-                long_fee = pool['fees']['open'] * utilization_fee * trade_decision['short']['quantity']
-        # Handle close
-        elif trade_decision['short']['direction'] == 'close':
-            short_fee = pool['fees']['close'] * trade_decision['short']['quantity']
+            # Update the trader subtract the liquidity, add position with collateral, if position already exists subtract interest
+            updated_trader = update_trader_open_short(tmp_trader, trade_decision, fees, asset, timestep)
+            if updated_trader != -1:
+                # Update the pool
+                updated_pool = update_pool_open_short(tmp_pool, updated_trader, asset, trade_decision, fees)
+                if updated_pool != -1:
+                    # Update the genesis lp and pool
+                    updated_pool, updated_gen_lp = update_gen_lp(updated_pool, tmp_gen_lp, fees[0], trade_decision['short']['interest_paid'], asset, asset_prices)
+                    tmp_pool = updated_pool
+                    tmp_trader = updated_trader
+                    tmp_gen_lp = updated_gen_lp
 
-    return [long_fee, short_fee]
+        elif trade_decision['short']['direction'] == 'close':
+            # Update the trader subtract the liquidity, add position with collateral, if position already exists subtract interest
+            updated_trader = update_trader_close_short(tmp_trader, trade_decision, asset)
+            updated_pool = update_pool_close_short(tmp_pool, updated_trader, asset, trade_decision, fees)
+            if updated_pool != -1:
+                updated_pool, updated_gen_lp = update_gen_lp(updated_pool, tmp_gen_lp, fees[0], trade_decision['short']['interest_paid'], asset, asset_prices)
+                tmp_pool = updated_pool
+                tmp_trader = updated_trader
+                tmp_gen_lp = updated_gen_lp
+
+    return tmp_pool, tmp_trader, tmp_gen_lp
+
+
+def update_pool_trade1(pool, trader, trade_decision, fees, asset, cur_price, lp_tokens):
+    updated_pool = copy.deepcopy(pool)
+    long_fee, short_fee = fees
+    long_lp, short_lp = lp_tokens
+    available_asset = updated_pool['holdings'][asset] - (updated_pool['oi_long'][asset] + updated_pool['oi_short'][asset])
+
+    # print('trad', updated_pool['lp_shares'], lp_tokens)
+
+    # Update the pool according to long decision
+    if trade_decision['long'] != None:
+        if trade_decision['long']['direction'] == 'open':
+            long_asset = trade_decision['long']
+            long_quantity = long_asset['quantity']
+            long_collateral = long_asset['collateral']
+
+            # Check if there is enough asset in the pool for the trade
+            if available_asset < long_quantity:
+                return -1
+
+            # Increase the open interest
+            updated_pool['oi_long'][asset] += long_quantity
+
+            # Increase the trade volume
+            updated_pool['volume'][asset] += long_quantity
+
+            # Add to total fees collected
+            updated_pool['total_fees_collected'][asset] += long_fee
+
+            # Update loan book
+            if trader['id'] not in updated_pool['loan_book_longs']:
+                updated_pool['loan_book_longs'][trader['id']] = {}
+            if asset not in updated_pool['loan_book_longs'][trader['id']]:
+                updated_pool['loan_book_longs'][trader['id']][asset] = {'amount': long_quantity, 'collateral': long_collateral}
+            else:
+                updated_pool['loan_book_longs'][trader['id']][asset]['amount'] += long_quantity
+                updated_pool['loan_book_longs'][trader['id']][asset]['collateral'] += long_collateral
+                
+        if trade_decision['long']['direction'] == 'close':
+            long_asset = trade_decision['long']
+            long_quantity = long_asset['quantity']
+            pnl = long_asset['PnL']
+
+            # Decrease the open interest and holdings
+            updated_pool['oi_long'][asset] -= long_quantity
+            updated_pool['holdings'][asset] -= pnl
+
+            updated_pool['total_fees_collected'][asset] += long_fee
+
+            # Update loan book
+            del updated_pool['loan_book_longs'][trader['id']][asset]
+    
+        updated_pool['holdings'][asset] += long_fee
+        updated_pool['lp_shares'] += long_lp
+        updated_pool['lps']["genesis"][asset] += long_fee
+
+    # Update the pool according to short decision
+    if trade_decision['short'] != None:
+        if trade_decision['short']['direction'] == 'open':
+            short_asset = trade_decision['short']
+            short_quantity = short_asset['quantity']
+            short_collateral = short_asset['collateral']
+
+            # Increase the open interest
+            updated_pool['oi_short'][asset] += short_quantity
+
+            # Increase the trade volume
+            updated_pool['volume'][asset] += short_quantity
+
+            # Add to total fees collected
+            updated_pool['total_fees_collected'][short_asset['denomination']] += short_fee * cur_price
+
+            # Update loan book
+            if trader['id'] not in updated_pool['loan_book_shorts']:
+                updated_pool['loan_book_shorts'][trader['id']] = {}
+            if asset not in updated_pool['loan_book_shorts'][trader['id']]:
+                updated_pool['loan_book_shorts'][trader['id']][asset] = {'amount': short_quantity, 'collateral': short_collateral}
+            else:
+                updated_pool['loan_book_shorts'][trader['id']][asset]['amount'] += short_quantity
+                updated_pool['loan_book_shorts'][trader['id']][asset]['collateral'] += short_collateral
+
+        if trade_decision['short']['direction'] == 'close':
+            short_asset = trade_decision['short']
+            short_quantity = short_asset['quantity']
+            pnl = short_asset['PnL']
+
+            # Decrease the open interest and holdings
+            updated_pool['oi_short'][asset] -= short_quantity
+            updated_pool['holdings'][short_asset['denomination']] -= pnl
+
+            updated_pool['total_fees_collected'][short_asset['denomination']] += short_fee * cur_price
+
+            # Update loan book
+            del updated_pool['loan_book_shorts'][trader['id']][asset]
+
+        updated_pool['holdings'][short_asset['denomination']] += short_fee * cur_price
+        updated_pool['lp_shares'] += short_lp
+        updated_pool['lps']["genesis"][short_asset['denomination']] += short_fee * cur_price
+        
+    # update pool open pnl based on cur_price and the postition of the trader
+    if asset in trader['positions_long']:
+        updated_pool['open_pnl_long'][asset] = trader['positions_long'][asset]['entry_price'] * trader['positions_long'][asset]['quantity'] - cur_price * trader['positions_long'][asset]['quantity']
+        # print(f"long pnl updated {pool['open_pnl_long'][asset]} = {trader['positions_long'][asset]['entry_price']} * {trader['positions_long'][asset]['quantity']} - {cur_price} * {trader['positions_long'][asset]['quantity']}")
+    if asset in trader['positions_short']:
+        updated_pool['open_pnl_short'][asset] = cur_price * trader['positions_short'][asset]['quantity'] - trader['positions_short'][asset]['entry_price'] * trader['positions_short'][asset]['quantity']
+        # print(f"short pnl updated {pool['open_pnl_short'][asset]} = {trader['positions_short'][asset]['entry_price']} * {trader['positions_short'][asset]['quantity']} - {cur_price} * {trader['positions_short'][asset]['quantity']}")
+
+    return updated_pool

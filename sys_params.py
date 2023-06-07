@@ -3,8 +3,8 @@
 initial_conditions = {
     'genesis_traders': 20,
     'genesis_providers': 10,
-    'num_of_days': 20,
-    'initial_liquidity': {'BTC': 10, 'ETH': 110, 'SOL': 2500, 'USDC': 450000, 'USDT': 450000},
+    'num_of_days': 100,
+    'initial_liquidity': {'BTC': 5, 'ETH': 75, 'SOL': 7500, 'USDC': 150000, 'USDT': 150000},
 }
 
 sys_params = {

@@ -51,7 +51,7 @@ def postprocessing(df):
         traders = row['traders']
         liquidity_providers = row['liquidity_providers']
         pools = row['pools']
-        treasury = row['treasury']
+        # treasury = row['treasury']
         liquidations = row['liquidations']
         num_of_longs = row['num_of_longs']
         num_of_shorts = row['num_of_shorts']
@@ -95,9 +95,9 @@ def postprocessing(df):
             'pool_balance_usdc': pools[0]['holdings']['USDC'],
             'pool_balance_usdt': pools[0]['holdings']['USDT'],
             'cum_pnl_traders': sum(trader['PnL'] for trader in traders.values()),
-            # 'max_pnl_traders': max(trader['PnL'] for trader in traders.values()),
-            # 'min_pnl_traders': min(trader['PnL'] for trader in traders.values()),
-            #'cum_apy_providers': sum(lp['yield'] for lp in liquidity_providers.values()),  # Assuming each LP has a 'yield' key
+            'max_pnl_traders': max(trader['PnL'] for trader in traders.values()),
+            'min_pnl_traders': min(trader['PnL'] for trader in traders.values()),
+            # 'cum_apy_providers': sum(lp['yield'] for lp in liquidity_providers.values()),  # Assuming each LP has a 'yield' key
             'oi_long_btc': pools[0]['oi_long']['BTC'],
             'oi_long_eth': pools[0]['oi_long']['ETH'],
             'oi_long_sol': pools[0]['oi_long']['SOL'],
@@ -116,11 +116,11 @@ def postprocessing(df):
             'fees_collected_sol': pools[0]['total_fees_collected']['SOL'],
             'fees_collected_usdc': pools[0]['total_fees_collected']['USDC'],
             'fees_collected_usdt': pools[0]['total_fees_collected']['USDT'],
-            'treasury_balance_btc': treasury['BTC'],
-            'treasury_balance_eth': treasury['ETH'],
-            'treasury_balance_sol': treasury['SOL'],
-            'treasury_balance_usdc': treasury['USDC'],
-            'treasury_balance_usdt': treasury['USDT'],
+            'treasury_balance_btc': liquidity_providers['genesis']['liquidity']['BTC'],
+            'treasury_balance_eth': liquidity_providers['genesis']['liquidity']['ETH'],
+            'treasury_balance_sol': liquidity_providers['genesis']['liquidity']['SOL'],
+            'treasury_balance_usdc': liquidity_providers['genesis']['liquidity']['USDC'],
+            'treasury_balance_usdt': liquidity_providers['genesis']['liquidity']['USDT'],
             'pool_pnl_btc': pools[0]['open_pnl_long']['BTC'] + pools[0]['open_pnl_short']['BTC'], 
             'pool_pnl_eth': pools[0]['open_pnl_long']['ETH'] + pools[0]['open_pnl_short']['ETH'],
             'pool_pnl_sol': pools[0]['open_pnl_long']['SOL'] + pools[0]['open_pnl_short']['SOL'],

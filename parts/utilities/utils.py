@@ -5,7 +5,7 @@ import copy
 import os
 import random
 
-year = 22
+year = 'HR'
 
 def fetch_asset_prices(assets, timestep):
     asset_prices = {}
@@ -84,6 +84,8 @@ def number_of_lqprov(timestep):
     return 20
 
 def calculate_interest(position_size, duration, asset, pool, rate_params):
+    if year == 'HR':
+        duration = duration/24
     optimal_utilization = rate_params[0]
     slope1 = rate_params[1]
     slope2 = rate_params[2]
@@ -108,3 +110,13 @@ def calculate_interest(position_size, duration, asset, pool, rate_params):
     return borrow_fee_amount
 
 
+def calculate_open_pnl(traders, asset_prices):
+    open_pnl_long = {asset: 0 for asset in asset_prices.keys()}
+    open_pnl_short = {asset: 0 for asset in asset_prices.keys()}
+    for trader_id in traders.keys():
+        for asset in traders[trader_id]['positions_long'].keys():
+            open_pnl_long[asset] -= traders[trader_id]['positions_long'][asset]['quantity'] * (asset_prices[asset][0] - traders[trader_id]['positions_long'][asset]['entry_price'])
+        for asset in traders[trader_id]['positions_short'].keys():
+            open_pnl_short[asset] -= traders[trader_id]['positions_short'][asset]['quantity'] * (asset_prices[asset][0] - traders[trader_id]['positions_short'][asset]['entry_price'])
+
+    return [open_pnl_long, open_pnl_short]

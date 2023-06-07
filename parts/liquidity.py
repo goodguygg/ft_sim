@@ -63,8 +63,8 @@ def liquidity_policy(params, substep, state_history, previous_state):
                 liquidity_provider = res_tmp[1]
                 gen_prov = res_tmp[2]
                 pool = res_tmp[0]
-                if timestep == 10:
-                    pool['yield'] = {'BTC': 0.001, 'SOL': 0.001, 'ETH': 0.001, 'USDC': 0.001, 'USDT': 0.001}
+                # if timestep == 10:
+                #     pool['yield'] = {'BTC': 0.001, 'SOL': 0.001, 'ETH': 0.001, 'USDC': 0.001, 'USDT': 0.001}
                 fees_collected[p][asset] += fee_amount
             liquidity_providers[liquidity_provider_id] = liquidity_provider
         liquidity_providers['genesis'] = gen_prov
