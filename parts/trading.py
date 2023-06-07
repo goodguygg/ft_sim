@@ -180,8 +180,8 @@ def trading_policy(params, substep, state_history, previous_state):
             pool['yield'][asset] = 0.7 * (365*24) * (pool['total_fees_collected'][asset] - previous_state['pools'][pool_id]['total_fees_collected'][asset]) / pool['holdings'][asset]
         
         # calculate amount of lp tokens
-        for provider_id in liquidity_providers.keys():
-            for asset in liquidity_providers[provider_id]['liquidity'].keys():
+        for provider_id in pool['lps'].keys():
+            for asset in pool['lps'][provider_id].keys():
                 # calculate number of lp shares
                 tvl = pool_tvl_max(pool['holdings'], asset_prices)
                 provider_share = total_provider_fees_collected[asset] * (liquidity_providers[provider_id]['liquidity'][asset] / pool['holdings'][asset])
@@ -194,7 +194,7 @@ def trading_policy(params, substep, state_history, previous_state):
                 liquidity_providers[provider_id]['pool_share'] += lp_tokens
 
                 # update pool
-                pool['lps'][asset] += provider_share
+                pool['lps'][provider_id][asset] += provider_share
                 pool['lp_shares'] += lp_tokens
                 pool['holdings'][asset] += provider_share
 
