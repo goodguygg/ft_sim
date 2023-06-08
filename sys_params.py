@@ -1,9 +1,9 @@
 
 
 initial_conditions = {
-    'genesis_traders': 10,
-    'genesis_providers': 5,
-    'num_of_days': 20,
+    'genesis_traders': 20,
+    'genesis_providers': 10,
+    'num_of_days': 10,
     'initial_liquidity': {'BTC': 5, 'ETH': 75, 'SOL': 7500, 'USDC': 150000, 'USDT': 150000},
 }
 
@@ -17,6 +17,6 @@ sys_params = {
     'base_fees_swap': [{'BTC': 0.00025, 'ETH': 0.00025, 'SOL': 0.00015, 'USDC': 0.0001, 'USDT': 0.0001}],
     'om_fees_swap': [[0.01, 0.005]],
     # simulation params
-    'trader_traction': [0.5],
-    'lp_traction': [0.3],
+    'trader_traction': [0.05],
+    'lp_traction': [0.03],
 }

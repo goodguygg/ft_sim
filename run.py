@@ -182,7 +182,7 @@ def to_xslx(df, name):
 
     trac_sheet['L1'] = "Amount of traders"
     values = Reference(sheet, min_col=2, min_row=3, max_col=2, max_row=timestamps)
-    chart = LineChart()
+    chart = BarChart()
     chart.add_data(values)
     chart.title = "number_of_traders"
     chart.x_axis.title = "Hr"
@@ -193,7 +193,17 @@ def to_xslx(df, name):
     s.graphicalProperties.solidFill = "00FF00"
     trac_sheet.add_chart(chart, "L3")
 
-    # Create a eth maxi sheet
+    trac_sheet['A18'] = "Number of lp tokens in the pool"
+    timestamps = df.shape[0]
+    values = Reference(sheet, min_col=4, min_row=3, max_col=4, max_row=timestamps)
+    chart = BarChart()
+    chart.add_data(values)
+    chart.title = "pool_lp_tokens"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "Lp tokens"
+    trac_sheet.add_chart(chart, "A20")
+
+    # Create a pool chart sheet
     pool_sheet = wb.create_sheet(title="pool charts")
 
     pool_sheet['A1'] = "BTC pool size"
@@ -211,29 +221,33 @@ def to_xslx(df, name):
 
     pool_sheet['J1'] = "ETH pool size"
     values = Reference(sheet, min_col=6, min_row=3, max_col=6, max_row=timestamps)
-    chart = LineChart()
+    chart = AreaChart()
     chart.add_data(values)
     chart.title = "pool_balance_eth"
     chart.x_axis.title = "Hr"
     chart.y_axis.title = "ETH"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
     pool_sheet.add_chart(chart, "J3")
 
     pool_sheet['S1'] = "SOL pool size"
     values = Reference(sheet, min_col=7, min_row=3, max_col=7, max_row=timestamps)
-    chart = BarChart()
+    chart = AreaChart()
     chart.add_data(values)
     chart.title = "pool_balance_sol"
     chart.x_axis.title = "Hr"
     chart.y_axis.title = "SOL"
     # Change bar filling and line color 
     s = chart.series[0]
-    s.graphicalProperties.line.solidFill = "00FF00"
-    s.graphicalProperties.solidFill = "00FF00"
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
     pool_sheet.add_chart(chart, "S3")
 
     pool_sheet['A18'] = "USDC pool size"
     values = Reference(sheet, min_col=8, min_row=3, max_col=8, max_row=timestamps)
-    chart = BarChart()
+    chart = AreaChart()
     chart.add_data(values)
     chart.title = "pool_balance_usdc"
     chart.x_axis.title = "Hr"
@@ -251,70 +265,451 @@ def to_xslx(df, name):
     chart.title = "pool_balance_usdt"
     chart.x_axis.title = "Hr"
     chart.y_axis.title = "USDT"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
     pool_sheet.add_chart(chart, "J20")
 
-    # eth_sheet['S18'] = "Trade volume of the eth maxi tokens"
-    # timestamps = df.shape[0]
-    # values = Reference(sheet, min_col=11, min_row=3, max_col=11, max_row=timestamps)
-    # chart = LineChart()
-    # chart.add_data(values)
-    # chart.title = "eth_volume"
-    # chart.x_axis.title = "Day"
-    # chart.y_axis.title = "ETHM"
-    # # Change bar filling and line color 
-    # s = chart.series[0]
-    # s.graphicalProperties.line.solidFill = "00FF00"
-    # s.graphicalProperties.solidFill = "00FF00"
-    # eth_sheet.add_chart(chart, "S20")
+    # Create a pnl sheet
+    pnl_sheet = wb.create_sheet(title="pnl charts")
 
-    # eth_sheet['A35'] = "Trade volume of the eth maxi tokens in USD"
-    # timestamps = df.shape[0]
-    # values = Reference(sheet, min_col=12, min_row=3, max_col=12, max_row=timestamps)
-    # chart = LineChart()
-    # chart.add_data(values)
-    # chart.title = "eth_pvolume"
-    # chart.x_axis.title = "Day"
-    # chart.y_axis.title = "$"
-    # eth_sheet.add_chart(chart, "A37")
+    pnl_sheet['A1'] = "Cumulative traders pnl"
+    values = Reference(sheet, min_col=10, min_row=3, max_col=10, max_row=timestamps)
+    chart = LineChart()
+    chart.add_data(values)
+    chart.title = "cum_pnl_traders"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "USD"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "0000FF"
+    s.graphicalProperties.solidFill = "0000FF"
+    pnl_sheet.add_chart(chart, "A3")
 
-    # eth_sheet['J35'] = "Volume of arbitrage trades"
-    # timestamps = df.shape[0]
-    # values = Reference(sheet, min_col=13, min_row=3, max_col=13, max_row=timestamps)
-    # chart = LineChart()
-    # chart.add_data(values)
-    # chart.title = "eth_arbitrage_volume"
-    # chart.x_axis.title = "Day"
-    # chart.y_axis.title = "$"
-    # # Change bar filling and line color 
-    # s = chart.series[0]
-    # s.graphicalProperties.line.solidFill = "00FF00"
-    # s.graphicalProperties.solidFill = "00FF00"
-    # eth_sheet.add_chart(chart, "J37")
+    pnl_sheet['J1'] = "Max trader pnl"
+    values = Reference(sheet, min_col=11, min_row=3, max_col=11, max_row=timestamps)
+    chart = BarChart()
+    chart.add_data(values)
+    chart.title = "max_pnl_traders"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "USD"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "0000FF"
+    s.graphicalProperties.solidFill = "0000FF"
+    pnl_sheet.add_chart(chart, "J3")
 
-    # eth_sheet['S35'] = "Spread between trades up and down"
-    # timestamps = df.shape[0]
-    # values = Reference(sheet, min_col=14, min_row=3, max_col=14, max_row=timestamps)
-    # chart = LineChart()
-    # chart.add_data(values)
-    # chart.title = "eth_arbitrage_spread"
-    # chart.x_axis.title = "Day"
-    # chart.y_axis.title = "$"
-    # eth_sheet.add_chart(chart, "S37")
+    pnl_sheet['S1'] = "Min trader pnl"
+    values = Reference(sheet, min_col=12, min_row=3, max_col=12, max_row=timestamps)
+    chart = BarChart()
+    chart.add_data(values)
+    chart.title = "min_pnl_traders"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "USD"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "0000FF"
+    s.graphicalProperties.solidFill = "0000FF"
+    pnl_sheet.add_chart(chart, "S3")
 
-    # eth_sheet['A52'] = "Balance of the eth maxi SAV"
-    # timestamps = df.shape[0]
-    # values = Reference(sheet, min_col=15, min_row=3, max_col=15, max_row=timestamps)
-    # chart = LineChart()
-    # chart.add_data(values)
-    # chart.title = "sav_balance_eth"
-    # chart.x_axis.title = "Day"
-    # chart.y_axis.title = "$"
-    # # Change bar filling and line color 
-    # s = chart.series[0]
-    # s.graphicalProperties.line.solidFill = "FF0000"
-    # s.graphicalProperties.solidFill = "FF0000"
-    # eth_sheet.add_chart(chart, "A54")
+    pnl_sheet['A18'] = "BTC pool pnl"
+    values = Reference(sheet, min_col=36, min_row=3, max_col=36, max_row=timestamps)
+    chart = LineChart()
+    chart.add_data(values)
+    chart.title = "pool_pnl_btc"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "USD"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
+    pnl_sheet.add_chart(chart, "A20")
 
+    pnl_sheet['J18'] = "ETH pool pnl"
+    values = Reference(sheet, min_col=37, min_row=3, max_col=37, max_row=timestamps)
+    chart = LineChart()
+    chart.add_data(values)
+    chart.title = "pool_pnl_eth"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "USD"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
+    pnl_sheet.add_chart(chart, "J20")
+
+    pnl_sheet['S18'] = "SOL pool pnl"
+    timestamps = df.shape[0]
+    values = Reference(sheet, min_col=38, min_row=3, max_col=38, max_row=timestamps)
+    chart = LineChart()
+    chart.add_data(values)
+    chart.title = "pool_pnl_sol"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "USD"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
+    pnl_sheet.add_chart(chart, "S20")
+
+    # Create a oi sheet
+    oi_sheet = wb.create_sheet(title="oi charts")
+
+    oi_sheet['A1'] = "OI long BTC"
+    values = Reference(sheet, min_col=13, min_row=3, max_col=13, max_row=timestamps)
+    chart = LineChart()
+    chart.add_data(values)
+    chart.title = "oi_long_btc"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "BTC"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
+    oi_sheet.add_chart(chart, "A3")
+
+    oi_sheet['J1'] = "OI long ETH"
+    values = Reference(sheet, min_col=14, min_row=3, max_col=14, max_row=timestamps)
+    chart = LineChart()
+    chart.add_data(values)
+    chart.title = "oi_long_eth"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "ETH"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
+    oi_sheet.add_chart(chart, "J3")
+
+    oi_sheet['S1'] = "OI long SOL"
+    values = Reference(sheet, min_col=15, min_row=3, max_col=15, max_row=timestamps)
+    chart = LineChart()
+    chart.add_data(values)
+    chart.title = "oi_long_sol"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "SOL"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
+    oi_sheet.add_chart(chart, "S3")
+
+    oi_sheet['A18'] = "OI short BTC"
+    values = Reference(sheet, min_col=16, min_row=3, max_col=16, max_row=timestamps)
+    chart = LineChart()
+    chart.add_data(values)
+    chart.title = "oi_short_btc"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "BTC"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
+    oi_sheet.add_chart(chart, "A20")
+
+    oi_sheet['J18'] = "OI short ETH"
+    values = Reference(sheet, min_col=17, min_row=3, max_col=17, max_row=timestamps)
+    chart = LineChart()
+    chart.add_data(values)
+    chart.title = "oi_short_eth"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "ETH"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
+    oi_sheet.add_chart(chart, "J20")
+
+    oi_sheet['S18'] = "OI short SOL"
+    timestamps = df.shape[0]
+    values = Reference(sheet, min_col=18, min_row=3, max_col=18, max_row=timestamps)
+    chart = LineChart()
+    chart.add_data(values)
+    chart.title = "oi_short_sol"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "SOL"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
+    oi_sheet.add_chart(chart, "S20")
+
+    oi_sheet['A35'] = "Nominal exposure BTC"
+    timestamps = df.shape[0]
+    values = Reference(sheet, min_col=39, min_row=3, max_col=39, max_row=timestamps)
+    chart = LineChart()
+    chart.add_data(values)
+    chart.title = "nominal_exposure_btc"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "BTC"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
+    oi_sheet.add_chart(chart, "A37")
+
+    oi_sheet['J35'] = "Nominal exposure ETH"
+    timestamps = df.shape[0]
+    values = Reference(sheet, min_col=40, min_row=3, max_col=40, max_row=timestamps)
+    chart = LineChart()
+    chart.add_data(values)
+    chart.title = "nominal_exposure_eth"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "ETH"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
+    oi_sheet.add_chart(chart, "J37")
+
+    oi_sheet['S35'] = "Nominal exposure SOL"
+    timestamps = df.shape[0]
+    values = Reference(sheet, min_col=41, min_row=3, max_col=41, max_row=timestamps)
+    chart = LineChart()
+    chart.add_data(values)
+    chart.title = "nominal_exposure_sol"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "SOL"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
+    oi_sheet.add_chart(chart, "S37")
+
+    # Create a volume sheet
+    volume_sheet = wb.create_sheet(title="volume charts")
+
+    volume_sheet['A1'] = "Volume BTC"
+    values = Reference(sheet, min_col=19, min_row=3, max_col=19, max_row=timestamps)
+    chart = AreaChart()
+    chart.add_data(values)
+    chart.title = "volume_btc"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "BTC"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "0000FF"
+    s.graphicalProperties.solidFill = "0000FF"
+    volume_sheet.add_chart(chart, "A3")
+
+    volume_sheet['J1'] = "Volume ETH"
+    values = Reference(sheet, min_col=20, min_row=3, max_col=20, max_row=timestamps)
+    chart = AreaChart()
+    chart.add_data(values)
+    chart.title = "volume_eth"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "ETH"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "0000FF"
+    s.graphicalProperties.solidFill = "0000FF"
+    volume_sheet.add_chart(chart, "J3")
+
+    volume_sheet['S1'] = "Volume SOL"
+    values = Reference(sheet, min_col=21, min_row=3, max_col=21, max_row=timestamps)
+    chart = AreaChart()
+    chart.add_data(values)
+    chart.title = "volume_sol"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "SOL"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "0000FF"
+    s.graphicalProperties.solidFill = "0000FF"
+    volume_sheet.add_chart(chart, "S3")
+
+    volume_sheet['A18'] = "Number of longs"
+    values = Reference(sheet, min_col=22, min_row=3, max_col=22, max_row=timestamps)
+    chart = BarChart()
+    chart.add_data(values)
+    chart.title = "num_of_longs"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "Amt"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "00FF00"
+    s.graphicalProperties.solidFill = "00FF00"
+    volume_sheet.add_chart(chart, "A20")
+
+    volume_sheet['J18'] = "Number of shorts"
+    values = Reference(sheet, min_col=23, min_row=3, max_col=23, max_row=timestamps)
+    chart = BarChart()
+    chart.add_data(values)
+    chart.title = "num_of_shorts"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "Amt"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "00FF00"
+    s.graphicalProperties.solidFill = "00FF00"
+    volume_sheet.add_chart(chart, "J20")
+
+    volume_sheet['S18'] = "Number of swaps"
+    timestamps = df.shape[0]
+    values = Reference(sheet, min_col=24, min_row=3, max_col=24, max_row=timestamps)
+    chart = BarChart()
+    chart.add_data(values)
+    chart.title = "num_of_swaps"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "Amt"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "00FF00"
+    s.graphicalProperties.solidFill = "00FF00"
+    volume_sheet.add_chart(chart, "S20")
+
+    volume_sheet['A35'] = "Number of liquidations"
+    timestamps = df.shape[0]
+    values = Reference(sheet, min_col=25, min_row=3, max_col=25, max_row=timestamps)
+    chart = BarChart()
+    chart.add_data(values)
+    chart.title = "number_of_liquidations"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "Amt"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
+    volume_sheet.add_chart(chart, "A37")
+
+    # Create a fees sheet
+    fees_sheet = wb.create_sheet(title="Fees charts")
+
+    fees_sheet['A1'] = "Fees collected BTC"
+    values = Reference(sheet, min_col=26, min_row=3, max_col=26, max_row=timestamps)
+    chart = AreaChart()
+    chart.add_data(values)
+    chart.title = "fees_collected_btc"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "BTC"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
+    fees_sheet.add_chart(chart, "A3")
+
+    fees_sheet['J1'] = "Fees collected ETH"
+    values = Reference(sheet, min_col=27, min_row=3, max_col=27, max_row=timestamps)
+    chart = AreaChart()
+    chart.add_data(values)
+    chart.title = "fees_collected_eth"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "ETH"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
+    fees_sheet.add_chart(chart, "J3")
+
+    fees_sheet['S1'] = "Fees collected SOL"
+    values = Reference(sheet, min_col=28, min_row=3, max_col=28, max_row=timestamps)
+    chart = AreaChart()
+    chart.add_data(values)
+    chart.title = "fees_collected_sol"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "SOL"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
+    fees_sheet.add_chart(chart, "S3")
+
+    fees_sheet['A18'] = "Fees collected USDC"
+    values = Reference(sheet, min_col=29, min_row=3, max_col=29, max_row=timestamps)
+    chart = AreaChart()
+    chart.add_data(values)
+    chart.title = "fees_collected_usdc"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "USDC"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
+    fees_sheet.add_chart(chart, "A20")
+
+    fees_sheet['J18'] = "Fees collected USDT"
+    values = Reference(sheet, min_col=30, min_row=3, max_col=30, max_row=timestamps)
+    chart = AreaChart()
+    chart.add_data(values)
+    chart.title = "fees_collected_usdt"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "USDT"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
+    fees_sheet.add_chart(chart, "J20")
+
+    fees_sheet['S18'] = "Treasury balance BTC"
+    timestamps = df.shape[0]
+    values = Reference(sheet, min_col=31, min_row=3, max_col=31, max_row=timestamps)
+    chart = AreaChart()
+    chart.add_data(values)
+    chart.title = "treasury_balance_btc"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "BTC"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "00FF00"
+    s.graphicalProperties.solidFill = "00FF00"
+    fees_sheet.add_chart(chart, "S20")
+
+    fees_sheet['A35'] = "Treasury balance ETH"
+    timestamps = df.shape[0]
+    values = Reference(sheet, min_col=32, min_row=3, max_col=32, max_row=timestamps)
+    chart = AreaChart()
+    chart.add_data(values)
+    chart.title = "treasury_balance_eth"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "ETH"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "00FF00"
+    s.graphicalProperties.solidFill = "00FF00"
+    fees_sheet.add_chart(chart, "A37")
+
+    fees_sheet['J35'] = "Treasury balance SOL"
+    timestamps = df.shape[0]
+    values = Reference(sheet, min_col=33, min_row=3, max_col=33, max_row=timestamps)
+    chart = AreaChart()
+    chart.add_data(values)
+    chart.title = "treasury_balance_sol"
+    chart.x_axis.title = "Day"
+    chart.y_axis.title = "SOL"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "00FF00"
+    s.graphicalProperties.solidFill = "00FF00"
+    fees_sheet.add_chart(chart, "J37")
+
+    fees_sheet['S35'] = "Treasury balance USDC"
+    timestamps = df.shape[0]
+    values = Reference(sheet, min_col=34, min_row=3, max_col=34, max_row=timestamps)
+    chart = AreaChart()
+    chart.add_data(values)
+    chart.title = "treasury_balance_usdc"
+    chart.x_axis.title = "Day"
+    chart.y_axis.title = "USDC"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "00FF00"
+    s.graphicalProperties.solidFill = "00FF00"
+    fees_sheet.add_chart(chart, "S37")
+
+    fees_sheet['A52'] = "Treasury balance USDT"
+    timestamps = df.shape[0]
+    values = Reference(sheet, min_col=35, min_row=3, max_col=35, max_row=timestamps)
+    chart = AreaChart()
+    chart.add_data(values)
+    chart.title = "treasury_balance_usdt"
+    chart.x_axis.title = "Day"
+    chart.y_axis.title = "USDT"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "00FF00"
+    s.graphicalProperties.solidFill = "00FF00"
+    fees_sheet.add_chart(chart, "A54")
 
     wb.save(f'{name}.xlsx')
 
@@ -326,8 +721,7 @@ def main():
     df = run()
     df = postprocessing(df)
     to_xslx(df, 'run') 
-    df = df[df.index % 2 != 0]
-    df = df.reset_index(drop=True)
+    df = df[::3].reset_index(drop=True)
     to_xslx(df, 'run_merged') 
     return df
 

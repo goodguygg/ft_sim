@@ -44,7 +44,10 @@ def trading_policy(params, substep, state_history, previous_state):
                         tokens_out = 'USDT' if tokens_in == 'USDC' else 'USDC'
                         swap_fee = swap_fee_calc(pool, tokens_in, trade_decision['short']['swap'], tokens_out, trade_decision['short']['swap'], params['base_fees_swap'], params['om_fees_swap'], asset_prices)
 
-                        pool, trader, gen_lp = swap_tokens(pool, trader, gen_lp, tokens_in, trade_decision['short']['swap'], tokens_out, trade_decision['short']['swap'], swap_fee, asset_prices)
+                        swap_res = swap_tokens(pool, trader, gen_lp, tokens_in, trade_decision['short']['swap'], tokens_out, trade_decision['short']['swap'], swap_fee, asset_prices)
+                        if swap_res != None:
+                            pool, trader, gen_lp = swap_res
+                            num_of_swaps += 1
 
                 # Fetch the fee amount
                 fees = trading_fee(pool, asset, trade_decision, params['rate_params'], params['ratio_mult'])
