@@ -3,6 +3,32 @@ from .utils import *
 import copy
 import numpy as np
 
+def swap_decision(trader_passed, asset, asset_prices):
+    trader = copy.deepcopy(trader_passed)
+
+    swap_action = random.random() # 1/5 buy, 1/5 sell, 3/5 do nothing
+    asset_held = trader['liquidity'][asset]
+    if swap_action < 0.2: # buy
+        swap_in = np.random.uniform(low=0.01, high=0.99) * asset_held
+        swap_out_asset = random.choice(list(asset_prices.keys()))
+
+        swap_in_price = asset_prices[asset][0] if asset_prices[asset][0] > asset_prices[asset][1] else asset_prices[asset][1]
+        swap_out_price = asset_prices[swap_out_asset][0] if asset_prices[swap_out_asset][0] < asset_prices[swap_out_asset][1] else asset_prices[swap_out_asset][1]
+
+        swap_out = swap_in * swap_in_price / swap_out_price
+        return {'swap_in': [swap_in, asset], 'swap_out': [swap_out, swap_out_asset]}
+    elif swap_action > 0.8: # sell
+        swap_out = np.random.uniform(low=0.01, high=0.99) * asset_held
+        swap_in_asset = random.choice(list(asset_prices.keys()))
+
+        swap_in_price = asset_prices[swap_in_asset][0] if asset_prices[swap_in_asset][0] > asset_prices[swap_in_asset][1] else asset_prices[swap_in_asset][1]
+        swap_out_price = asset_prices[asset][0] if asset_prices[asset][0] < asset_prices[asset][1] else asset_prices[asset][1]
+
+        swap_in = swap_out * swap_out_price / swap_in_price
+        return {'swap_in': [swap_in, swap_in_asset], 'swap_out': [swap_out, asset]}
+    else:
+        return None
+
 def swap_fee_calc(pool, token_in, token_in_amt, token_out, token_out_amt, base_fees, om_fees, asset_prices):
     '''
     final fee = pool receiving swap fee + pool paying swap fee + pool receiving base fee + pool paying base fee
@@ -64,44 +90,65 @@ def swap_tokens_trader(trader_passed, token_in, token_in_amt, token_out, token_o
     return trader
 
 # def trading_fee(pool, asset, trade_decision, rate_params, max_payoff_mult):
-def swap_tokens_pool(pool, token_in, token_in_amt, token_out, token_out_amt, swap_fee, asset_prices, lp_tokens):
+def swap_tokens_pool(pool, token_in, token_in_amt, token_out, token_out_amt, swap_fee, asset_prices):
 
     pool = copy.deepcopy(pool)
     # print('swap', pool['lp_shares'], lp_tokens)
 
     pool['holdings'][token_in] -= (token_in_amt - swap_fee[1])
     pool['holdings'][token_out] += token_out_amt + swap_fee[0]
+    pool['volume'][token_in] += token_in_amt
+    pool['volume'][token_out] += token_out_amt
     pool['total_fees_collected'][token_in] += swap_fee[1]
     pool['total_fees_collected'][token_out] += swap_fee[0]
-    pool['lp_shares'] += sum(lp_tokens)
-    pool['lps']['genesis'][token_in] += swap_fee[1]
-    pool['lps']['genesis'][token_out] += swap_fee[0]
 
     tvl = pool_total_holdings(pool, asset_prices)
 
     post_ratio_in = pool['holdings'][token_in] * asset_prices[token_in][0] / tvl
     post_ratio_out = pool['holdings'][token_out] * asset_prices[token_out][0] / tvl
 
-
     if pool['target_ratios'][token_in] - pool['deviation'] < post_ratio_in < pool['target_ratios'][token_out] + pool['deviation'] and pool['target_ratios'][token_in] - pool['deviation'] < post_ratio_out < pool['target_ratios'][token_out] + pool['deviation']:
         return pool
     else:
         return -1
+    
+def update_gen_lp_swap(updated_pool, tmp_gen_lp, fee, asset, asset_prices):
+    updated_lp_pool = copy.deepcopy(updated_pool)
+    updated_gen_lp = copy.deepcopy(tmp_gen_lp)
 
-def swap_decision(trader_passed, asset, asset_prices):
-    trader = copy.deepcopy(trader_passed)
+    lot_size = fee * 0.3
 
-    swap_action = random.random() # 1/5 buy, 1/5 sell, 3/5 do nothing
-    asset_held = trader['liquidity'][asset]
-    if swap_action < 0.2: # buy
-        swap_in = np.random.uniform(low=0.01, high=0.99) * asset_held
-        swap_out_asset = random.choice(list(asset_prices.keys()))
-        swap_out = swap_in * asset_prices[asset][0] / asset_prices[swap_out_asset][0]
-        return {'swap_in': [swap_in, asset], 'swap_out': [swap_out, swap_out_asset]}
-    elif swap_action > 0.8: # sell
-        swap_out = np.random.uniform(low=0.01, high=0.99) * asset_held
-        swap_in_asset = random.choice(list(asset_prices.keys()))
-        swap_in = swap_out * asset_prices[asset][0] / asset_prices[swap_in_asset][0]
-        return {'swap_in': [swap_in, swap_in_asset], 'swap_out': [swap_out, asset]}
-    else:
-        return None
+    # calculate amount of lp tokens
+    tvl = pool_tvl_max(updated_lp_pool['holdings'], asset_prices)
+    adding_price = asset_prices[asset][0] if asset_prices[asset][0] < asset_prices[asset][1] else asset_prices[asset][1]
+    pool_size_change = lot_size * adding_price / tvl
+    lp_tokens = pool_size_change * updated_lp_pool['lp_shares']
+
+    # Add the fee, interest and tokens to the genesis lp
+    updated_gen_lp['liquidity'][asset] += lot_size
+    updated_gen_lp['pool_share'] += lp_tokens
+
+    # add fee, interest and tokens to the pool
+    updated_lp_pool['holdings'][asset] += lot_size
+    updated_lp_pool['lp_shares'] += lp_tokens
+    updated_lp_pool['lps']["genesis"][asset] += lot_size
+
+    return [updated_lp_pool, updated_gen_lp]
+
+def swap_tokens(pool, trader, gen_lp, token_in, token_in_amt, token_out, token_out_amt, swap_fee, asset_prices):
+    tmp_pool = copy.deepcopy(pool)
+    tmp_trader = copy.deepcopy(trader)
+    tmp_gen_lp = copy.deepcopy(gen_lp)
+
+
+    updated_trader = swap_tokens_trader(tmp_trader, token_in, token_in_amt, token_out, token_out_amt, swap_fee)
+    if updated_trader != -1:
+        updated_pool = swap_tokens_pool(tmp_pool, token_in, token_in_amt, token_out, token_out_amt, swap_fee, asset_prices)
+        if updated_pool != -1:
+            updated_pool, updated_gen_lp = update_gen_lp_swap(updated_pool, tmp_gen_lp, swap_fee[0], token_out, asset_prices)
+            updated_pool, updated_gen_lp = update_gen_lp_swap(updated_pool, updated_gen_lp, swap_fee[1], token_in, asset_prices)
+            return updated_pool, updated_trader, updated_gen_lp
+        
+    return None
+
+

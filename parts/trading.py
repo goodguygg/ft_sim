@@ -1,15 +1,13 @@
 from .utilities.utils import *
 from .utilities.trad_mech import *
 from .utilities.swap_mech import *
-from .utilities.liq_mech import update_provider
+# from .utilities.liq_mech import update_provider
 
 def trading_policy(params, substep, state_history, previous_state):
 
     traders = copy.deepcopy(previous_state['traders'])
     pools = copy.deepcopy(previous_state['pools'])
     liquidity_providers = copy.deepcopy(previous_state['liquidity_providers'])
-    fees_collected = []
-    provider_pnl = []
     timestep = previous_state['timestep']
     # treasury = copy.deepcopy(previous_state['treasury'])
     liquidations = previous_state['liquidations']
@@ -23,8 +21,6 @@ def trading_policy(params, substep, state_history, previous_state):
     p = 0
     for pool_id in pools.keys():
         pool = pools[pool_id]
-        fees_collected.append({ast: 0 for ast in pool['assets']})
-        provider_pnl.append({ast: 0 for ast in pool['assets']})
         price_dict = fetch_asset_prices(pool['assets'], timestep)
 
         for trader_id in traders.keys():
@@ -44,128 +40,61 @@ def trading_policy(params, substep, state_history, previous_state):
 
                 # print('trade decision', trade_decision)
 
-                # if trade_decision['short'] != None and trade_decision['short']['direction'] == 'open':
-                #     if trade_decision['short']['swap'] != 0:
-                #         tokens_in = trade_decision['short']['denomination']
-                #         tokens_out = 'USDT' if tokens_in == 'USDC' else 'USDC'
-                #         swap_fee = swap_fee_calc(pool, tokens_in, trade_decision['short']['swap'], tokens_out, trade_decision['short']['swap'], params['base_fees_swap'], params['om_fees_swap'], asset_prices)
+                if trade_decision['short'] != None and trade_decision['short']['direction'] == 'open':
+                    if trade_decision['short']['swap'] != 0:
+                        tokens_in = trade_decision['short']['denomination']
+                        tokens_out = 'USDT' if tokens_in == 'USDC' else 'USDC'
+                        swap_fee = swap_fee_calc(pool, tokens_in, trade_decision['short']['swap'], tokens_out, trade_decision['short']['swap'], params['base_fees_swap'], params['om_fees_swap'], asset_prices)
 
-                #         tvl = pool_total_holdings(pool, asset_prices)
-                #         fee_perc = [(swap_fee[0] * float(asset_prices[tokens_in][0])) / tvl, (swap_fee[1] * float(asset_prices[tokens_out][0])) / tvl]
-                #         lp_tokens = [fee_perc[0] * pool['lp_shares'], fee_perc[1] * pool['lp_shares']]
-
-                #         gen_lp = update_provider(gen_lp, sum(swap_fee), asset, 0, sum(lp_tokens), 0)
-                #         trader_tmp = swap_tokens_trader(trader, tokens_in, trade_decision['short']['swap'], tokens_out, trade_decision['short']['swap'], swap_fee)
-                #         pool_tmp = swap_tokens_pool(pool, tokens_in, trade_decision['short']['swap'], tokens_out, trade_decision['short']['swap'], swap_fee, asset_prices, lp_tokens)
-
-                #         if trader_tmp == -1 or pool_tmp == -1:
-                #             # print('swap denied')
-                #             continue
-
-                #         trader = trader_tmp
-                #         pool = pool_tmp
-
-                #         provider_pnl[p][tokens_in] += swap_fee[0] * 0.7
-                #         treasury[tokens_in] += swap_fee[0] * 0.3
-                #         provider_pnl[p][tokens_out] += swap_fee[1] * 0.7
-                #         treasury[tokens_out] += swap_fee[1] * 0.3
+                        pool, trader, gen_lp = swap_tokens(pool, trader, gen_lp, tokens_in, trade_decision['short']['swap'], tokens_out, trade_decision['short']['swap'], swap_fee, asset_prices)
 
                 # Fetch the fee amount
                 fees = trading_fee(pool, asset, trade_decision, params['rate_params'], params['ratio_mult'])
 
-                # tvl = pool_total_holdings(pool, asset_prices)
-                # fee_perc = [(fees[0] * asset_prices[asset][0]) / tvl, (fees[1] * asset_prices[asset][0]) / tvl]
-                # lp_tokens = [fee_perc[0] * pool['lp_shares'], fee_perc[1] * pool['lp_shares']]
+                exec_long = execute_long(pool, trader, gen_lp, trade_decision, fees, asset, timestep, asset_prices)
+                if exec_long != None:
+                    exec_short = execute_short(exec_long[0], exec_long[1], exec_long[2], trade_decision, fees, asset, timestep, asset_prices)
+                    if exec_short != None:
+                        pool, trader, gen_lp = exec_short
+                    else:
+                        pool, trader, gen_lp = exec_long
+                else:
+                    exec_short = execute_short(pool, trader, gen_lp, trade_decision, fees, asset, timestep, asset_prices)
+                    if exec_short != None:
+                        pool, trader, gen_lp = exec_short
+                    else:
+                        continue
 
-                # # update the provider and pool values
-                # trader_temp = update_trader(trader, trade_decision, fees, asset, timestep)
-                # pool_tmp = update_pool_trade(pool, trader, trade_decision, fees, asset, asset_prices[asset][0], lp_tokens)
-
-                # if pool_tmp == -1 or trader_temp == -1:
-                #     # print('trade denied')
-                #     continue
-                # if trade_decision['long'] != None:
-                #     gen_lp = update_provider(gen_lp, fees[0], asset, 0, lp_tokens[0], 0)
-                # if trade_decision['short'] != None:
-                #     gen_lp = update_provider(gen_lp, fees[1], asset, 0, lp_tokens[1], 0)
-
-                pool, trader, gen_lp = execute_trade(pool, trader, gen_lp, trade_decision, fees, asset, timestep, asset_prices)
-
-                # trader = trader_temp
-                # pool = pool_tmp
-                fees_collected[p][asset] += fees[0] * float(asset_prices[asset][0]) + fees[1]
-
-                if trade_decision['long'] != None and trade_decision['long']['direction'] == 'open':
+                if exec_long != None:
                     # print('longed')
                     num_of_longs += 1
-                # if trade_decision['long'] != None and trade_decision['long']['direction'] == 'close':
-                    # print('long closed')
-                    # num_of_longs += 1
-                if trade_decision['short'] != None and trade_decision['short']['direction'] == 'open':
+                if exec_short != None:
                     # print('shorted')
                     num_of_shorts += 1
-                # if trade_decision['short'] != None and trade_decision['short']['direction'] == 'close':
-                    # print('short closed')
-                    # num_of_shorts += 1
-
-                # # pay the fee to lps and treasury, consider the pnl of the providers
-                # if trade_decision['long'] != None:
-                #     # distribute fees to providers
-                #     provider_pnl[p][asset] += fees[0] * 0.7
-                #     treasury[asset] += fees[0] * 0.3
-                #     if trade_decision['long']['direction'] == 'close':
-                #         # subtract pnl from providers
-                #         liquidations += trade_decision['long']['liquidation']
-
-                # if trade_decision['short'] != None:
-                #     # distribute fees to providers
-                #     provider_pnl[p][trade_decision['short']['denomination']] += fees[1] * 0.7
-                #     treasury[trade_decision['short']['denomination']] += fees[1] * 0.3
-                #     if trade_decision['short']['direction'] == 'close':
-                #         # subtract pnl from providers
-                #         liquidations += trade_decision['short']['liquidation']
-
             
-            # asset_prices = get_asset_prices(price_dict)
-            # for asset in pool['assets']:
-            #     # print(f"this is swap {asset} {trader['liquidity'][asset]}")
+            asset_prices = get_asset_prices(price_dict)
+            for asset in pool['assets']:
+                # print(f"this is swap {asset} {trader['liquidity'][asset]}")
 
-            #     swaping_decision = swap_decision(trader, asset, asset_prices)
+                swaping_decision = swap_decision(trader, asset, asset_prices)
 
-            #     if swaping_decision == None:
-            #         continue
+                if swaping_decision == None:
+                    continue
 
-            #     swap_in = swaping_decision['swap_in']
-            #     swap_out = swaping_decision['swap_out']
-            #     swap_fee = swap_fee_calc(pool, swap_in[1], swap_in[0], swap_out[1], swap_out[0], params['base_fees_swap'], params['om_fees_swap'], asset_prices)
+                swap_in = swaping_decision['swap_in']
+                swap_out = swaping_decision['swap_out']
+                swap_fee = swap_fee_calc(pool, swap_in[1], swap_in[0], swap_out[1], swap_out[0], params['base_fees_swap'], params['om_fees_swap'], asset_prices)
 
-            #     tvl = pool_total_holdings(pool, asset_prices)
-            #     fee_perc = [(swap_fee[0] * float(asset_prices[swap_in[1]][0])) / tvl, (swap_fee[1] * float(asset_prices[swap_out[1]][0])) / tvl]
-            #     lp_tokens = [fee_perc[0] * pool['lp_shares'], fee_perc[1] * pool['lp_shares']]
-            #     gen_lp = update_provider(gen_lp, sum(swap_fee), asset, 0, sum(lp_tokens), 0)
-            #     # if asset == "SOL":
-            #     #     print(sum(swap_fee), asset, sum(lp_tokens))
-            #     trader_tmp = swap_tokens_trader(trader, swap_in[1], swap_in[0], swap_out[1], swap_out[0], swap_fee)
-            #     pool_tmp = swap_tokens_pool(pool, swap_in[1], swap_in[0], swap_out[1], swap_out[0], swap_fee, asset_prices, lp_tokens)
+                swap_res = swap_tokens(pool, trader, gen_lp, swap_in[1], swap_in[0], swap_out[1], swap_out[0], swap_fee, asset_prices)
 
-            #     if trader_tmp == -1 or pool_tmp == -1:
-            #         continue
+                if swap_res == None:
+                    continue
 
-            #     trader = trader_tmp
-            #     pool = pool_tmp
-
-            #     provider_pnl[p][swap_in[1]] += swap_fee[0] * 0.7
-            #     treasury[swap_in[1]] += swap_fee[0] * 0.3
-            #     provider_pnl[p][swap_out[1]] += swap_fee[1] * 0.7
-            #     treasury[swap_out[1]] += swap_fee[1] * 0.3
-
-            #     num_of_swaps += 1
+                pool, trader, gen_lp = swap_res
+                num_of_swaps += 1
 
             traders[trader_id] = trader
             liquidity_providers['genesis'] = gen_lp
-
-        # print('here', pool_id, previous_state['pools'])
-        # print('here1', pool_id, previous_state['pools'][pool_id])
 
         # update the pool values
         # update pool open pnl
@@ -207,9 +136,6 @@ def trading_policy(params, substep, state_history, previous_state):
         'traders': traders,
         'pools': pools,
         'liquidity_providers': liquidity_providers,
-        'fees_collected': fees_collected,
-        # 'treasury': treasury,
-        'provider_pnl': provider_pnl,
         'liquidations': liquidations,
         'num_of_longs': num_of_longs,
         'num_of_shorts': num_of_shorts,
@@ -236,25 +162,7 @@ def liquidations_uodate(params, substep, state_history, previous_state, policy):
 
 def distribution_providers_update(params, substep, state_history, previous_state, policy):
     key = 'liquidity_providers'
-    # provider_rewards = policy['provider_pnl']
-    # providers = copy.deepcopy(previous_state['liquidity_providers'])
-    # pools = copy.deepcopy(previous_state['pools'])
-    # pool_num = 0
-    # for pool_id in pools.keys():
-    #     pool = pools[pool_id]
-    #     for provider_id in providers.keys():
-    #         for asset in providers[provider_id]['liquidity'].keys():
-    #             providers[provider_id]['funds'][asset] += provider_rewards[pool_num][asset] * (providers[provider_id]['liquidity'][asset] / pool['holdings'][asset])
-    #     pool_num += 1
-    
-    # providers["genesis"] = policy['gen_lp']
-    # value = providers
     value = policy['liquidity_providers']
-    return (key, value)
-
-def treasury_update(params, substep, state_history, previous_state, policy):
-    key = 'treasury'
-    value = policy['treasury']
     return (key, value)
 
 def num_of_longs_update(params, substep, state_history, previous_state, policy):
@@ -271,11 +179,6 @@ def num_of_swaps_update(params, substep, state_history, previous_state, policy):
     key = 'num_of_swaps'
     value = previous_state['num_of_swaps'] + policy['num_of_swaps']
     return (key, value)
-
-# def nominal_exposure_update(params, substep, state_history, previous_state, policy):
-#     key = 'nominal_exposure'
-#     value = previous_state['nominal_exposure']
-#     return (key, value)
 
 # def oracle_attack_update(params, substep, state_history, previous_state, policy):
 #     key = 'oracle_attack'

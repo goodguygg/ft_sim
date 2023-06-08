@@ -79,10 +79,6 @@ def get_account_value(trader, asset_prices):
     total_value += sum([(trader['positions'][asset][0] * asset_prices[asset][0] - trader['loans'][asset][0]) for asset in trader['positions'].keys()])
     return total_value
 
-
-def number_of_lqprov(timestep):
-    return 20
-
 def calculate_interest(position_size, duration, asset, pool, rate_params):
     if year == 'HR':
         duration = duration/24

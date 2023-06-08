@@ -85,11 +85,9 @@ genesis_states = {
     'traders': generate_traders(copy.deepcopy(initial_conditions['genesis_traders'])),
     'liquidity_providers': generate_providers(copy.deepcopy(initial_conditions['genesis_providers'])),    
     'pools': generate_pools(1),
-    # 'treasury': {'BTC': 0, 'SOL': 0, 'ETH': 0, 'USDC': 0, 'USDT': 0},
     'liquidations': 0,
     'num_of_longs': 0,
     'num_of_shorts': 0,
     'num_of_swaps': 0
-    # 'nominal_exposure': 0,
     # 'oracle_attack': False
 }
