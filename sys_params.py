@@ -3,7 +3,7 @@
 initial_conditions = {
     'genesis_traders': 20,
     'genesis_providers': 10,
-    'num_of_days': 10,
+    'num_of_hrs': 10,
     'initial_liquidity': {'BTC': 5, 'ETH': 75, 'SOL': 7500, 'USDC': 150000, 'USDT': 150000},
 }
 
@@ -19,4 +19,6 @@ sys_params = {
     # simulation params
     'trader_traction': [0.05],
     'lp_traction': [0.03],
+    'trade_chance': [[0.1, 0.9]], # 1st value is the barrier for longs, second is for shorts
+    'swap_chance': [[0.1, 0.9]], # chance of swapping in and swapping out tokens 
 }

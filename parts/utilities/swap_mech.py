@@ -3,12 +3,12 @@ from .utils import *
 import copy
 import numpy as np
 
-def swap_decision(trader_passed, asset, asset_prices):
+def swap_decision(trader_passed, asset, asset_prices, swap_chance):
     trader = copy.deepcopy(trader_passed)
 
     swap_action = random.random() # 1/5 buy, 1/5 sell, 3/5 do nothing
     asset_held = trader['liquidity'][asset]
-    if swap_action < 0.2: # buy
+    if swap_action < swap_chance[0]: # buy
         swap_in = np.random.uniform(low=0.01, high=0.99) * asset_held
         swap_out_asset = random.choice(list(asset_prices.keys()))
 
@@ -17,7 +17,7 @@ def swap_decision(trader_passed, asset, asset_prices):
 
         swap_out = swap_in * swap_in_price / swap_out_price
         return {'swap_in': [swap_in, asset], 'swap_out': [swap_out, swap_out_asset]}
-    elif swap_action > 0.8: # sell
+    elif swap_action > swap_chance[1]: # sell
         swap_out = np.random.uniform(low=0.01, high=0.99) * asset_held
         swap_in_asset = random.choice(list(asset_prices.keys()))
 

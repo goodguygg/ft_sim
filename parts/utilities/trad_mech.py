@@ -90,7 +90,7 @@ def close_short(trader, timestep, asset, asset_price, liquidated, pool, rate_par
     # print("short", payout, trader['liquidity'][asset], trader[f'positions_short'][asset]['collateral']['amount'], interest, pnl)
     return decision
 
-def trading_decision(trader_passed, timestep, asset, asset_pricing, max_margin, liquidation_threshold, pool, rate_params):
+def trading_decision(trader_passed, timestep, asset, asset_pricing, max_margin, liquidation_threshold, pool, rate_params, trade_chance):
     trader = copy.deepcopy(trader_passed)
     pool = copy.deepcopy(pool)
 
@@ -152,7 +152,7 @@ def trading_decision(trader_passed, timestep, asset, asset_pricing, max_margin, 
     trade_action = random.random() # 1/4 enter a long, 1/4 enter a short, 1/2 do nothing. if position was closed then pass
     available_asset = pool['holdings'][asset] - (pool['oi_long'][asset] + pool['oi_short'][asset])
 
-    if trade_action < 0.1 and decision['long'] == None: # enter a long
+    if trade_action < trade_chance[0] and decision['long'] == None: # enter a long
         asset_held = trader['liquidity'][asset]
         max_leverage_lot = asset_held * max_margin
         lot_size = np.random.uniform(low=0.01, high=(trader['risk_factor'] / 10)) * max_leverage_lot * random.random()
@@ -192,7 +192,7 @@ def trading_decision(trader_passed, timestep, asset, asset_pricing, max_margin, 
                 # print(f"long {asset} {lot_size} at {ol_price} asset held {asset_held}")
 
 
-    elif trade_action > 0.9 and decision['short'] == None: # enter a short
+    elif trade_action > trade_chance[1] and decision['short'] == None: # enter a short
         # print('dec to short')
         os_price = spot_price if spot_price < ema_price else ema_price
         usd_liquidity = trader['liquidity']['USDC'] + trader['liquidity']['USDT']

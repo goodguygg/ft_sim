@@ -30,7 +30,7 @@ def trading_policy(params, substep, state_history, previous_state):
                 if asset == 'USDT' or asset == 'USDC':
                     continue
 
-                trade_decision = trading_decision(trader, timestep, asset, asset_prices[asset], params['max_margin'], params['liquidation_threshold'], pool, params['rate_params'])
+                trade_decision = trading_decision(trader, timestep, asset, asset_prices[asset], params['max_margin'], params['liquidation_threshold'], pool, params['rate_params'], params['trade_chance'])
 
                 if trade_decision['long'] == None and trade_decision['short'] == None:
                     # print('no trade')
@@ -77,7 +77,7 @@ def trading_policy(params, substep, state_history, previous_state):
             for asset in pool['assets']:
                 # print(f"this is swap {asset} {trader['liquidity'][asset]}")
 
-                swaping_decision = swap_decision(trader, asset, asset_prices)
+                swaping_decision = swap_decision(trader, asset, asset_prices, params['swap_chance'])
 
                 if swaping_decision == None:
                     continue
@@ -130,8 +130,6 @@ def trading_policy(params, substep, state_history, previous_state):
                 pool['lp_shares'] += lp_tokens
                 pool['holdings'][asset] += provider_share
 
-            
-        
         pools[pool_id] = pool
         p += 1
         
