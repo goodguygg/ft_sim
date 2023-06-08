@@ -1,7 +1,6 @@
 from .utilities.utils import *
 from .utilities.trad_mech import *
 from .utilities.swap_mech import *
-# from .utilities.liq_mech import update_provider
 
 def trading_policy(params, substep, state_history, previous_state):
 
@@ -9,7 +8,6 @@ def trading_policy(params, substep, state_history, previous_state):
     pools = copy.deepcopy(previous_state['pools'])
     liquidity_providers = copy.deepcopy(previous_state['liquidity_providers'])
     timestep = previous_state['timestep']
-    # treasury = copy.deepcopy(previous_state['treasury'])
     liquidations = previous_state['liquidations']
     num_of_longs = 0
     num_of_shorts = 0
@@ -114,6 +112,8 @@ def trading_policy(params, substep, state_history, previous_state):
                 # calculate number of lp shares
                 tvl = pool_tvl_max(pool['holdings'], asset_prices)
                 provider_share = total_provider_fees_collected[asset] * (liquidity_providers[provider_id]['liquidity'][asset] / pool['holdings'][asset])
+                if provider_id == 'genesis':
+                    provider_share = total_provider_fees_collected[asset] * ((liquidity_providers[provider_id]['liquidity'][asset] - total_provider_fees_collected[asset] * 0.3 / 0.7) / pool['holdings'][asset])
                 adding_price = asset_prices[asset][0] if asset_prices[asset][0] < asset_prices[asset][1] else asset_prices[asset][1]
                 pool_size_change = provider_share * adding_price / tvl
                 lp_tokens = pool_size_change * pool['lp_shares']

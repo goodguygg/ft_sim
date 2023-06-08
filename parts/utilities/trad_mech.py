@@ -114,8 +114,8 @@ def trading_decision(trader_passed, timestep, asset, asset_pricing, max_margin, 
         duration = timestep - trader[f'positions_long'][asset]['timestep']
         interest = calculate_interest(trader[f'positions_long'][asset]['quantity'], duration, asset, pool, rate_params)
         payout = trader[f'positions_long'][asset]['collateral'] - interest + pnl
-        if payout < 0:
-            print('cl', payout, trader[f'positions_long'][asset]['collateral'], interest, pnl)
+        # if payout < 0:
+        #     print('cl', payout, trader[f'positions_long'][asset]['collateral'], interest, pnl)
         if payout / trader['positions_long'][asset]['quantity'] < liquidation_threshold:
             decision['long'] = {
                 'quantity': trader['positions_long'][asset]['quantity'],
@@ -136,8 +136,8 @@ def trading_decision(trader_passed, timestep, asset, asset_pricing, max_margin, 
         duration = timestep - trader[f'positions_short'][asset]['timestep']
         interest = calculate_interest(trader[f'positions_short'][asset]['quantity'], duration, asset, pool, rate_params)
         payout = trader[f'positions_short'][asset]['collateral']['amount'] - interest + pnl
-        if payout < 0:
-            print('cs', payout, trader[f'positions_short'][asset]['collateral']['amount'], interest, pnl)
+        # if payout < 0:
+        #     print('cs', payout, trader[f'positions_short'][asset]['collateral']['amount'], interest, pnl)
         if payout / trader['positions_short'][asset]['quantity'] < liquidation_threshold:
             decision['short'] = {
                 'quantity': trader['positions_short'][asset]['quantity'],
