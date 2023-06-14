@@ -7,6 +7,7 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 import json
 from openpyxl.chart import LineChart, Reference, BarChart, AreaChart, series
 from openpyxl.styles import PatternFill
+from sys_params import initial_conditions
 
 
 def run():
@@ -14,6 +15,11 @@ def run():
     Definition:
     Run simulation
     '''
+    try:
+        tst_price = fetch_asset_prices(['BTC', 'ETH', 'SOL', 'USDC', 'USDT'], initial_conditions['num_of_hrs'])
+    except:
+        raise ValueError("Number of hours is out of range")
+
     # Single
     exec_mode = ExecutionMode()
     local_mode_ctx = ExecutionContext(context=exec_mode.local_mode)

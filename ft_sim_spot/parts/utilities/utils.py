@@ -1,21 +1,31 @@
-
+import math
 import pandas as pd
 import numpy as np
 import copy
 import os
 import random
+from datetime import datetime, timedelta
 
-year = 'HR'
+event = 'FTX'
+start_date = '2022-11-01'
 
 def fetch_asset_prices(assets, timestep):
     asset_prices = {}
+    num_days = math.floor(timestep / 24)
+    timestep = timestep % 24
+
+    date_string = start_date
+    date = datetime.strptime(date_string, '%Y-%m-%d')
+    new_date = date + timedelta(days=num_days)
+    new_date_string = new_date.strftime('%Y-%m-%d')
+
     for asset in assets:
         try:
-            file_path = os.path.join('data', f'{asset}{year}.xlsx')
-            df = pd.read_excel(file_path)
+            file_path = os.path.join(f'data_{event}', f'{asset}-{event}-{new_date_string}.csv')
+            df = pd.read_csv(file_path)
         except:
-            file_path = os.path.join('parts', 'data', f'{asset}{year}.xlsx')
-            df = pd.read_excel(file_path)
+            file_path = os.path.join('parts', f'data_{event}', f'{asset}-{event}-{new_date_string}.csv')
+            df = pd.read_csv(file_path)
         price_high = df.loc[timestep, 'High']
         price_low = df.loc[timestep, 'Low']
         price_ema = df.loc[timestep, 'ema']
@@ -31,13 +41,21 @@ def get_asset_prices(asset_prices):
 
 def get_asset_volatility(assets, timestep):
     asset_volatility = {}
+    num_days = math.floor(timestep / 24)
+    timestep = timestep % 24
+
+    date_string = start_date
+    date = datetime.strptime(date_string, '%Y-%m-%d')
+    new_date = date + timedelta(days=num_days)
+    new_date_string = new_date.strftime('%Y-%m-%d')
+
     for asset in assets:
         try:
-            file_path = os.path.join('data', f'{asset}{year}.xlsx')
-            df = pd.read_excel(file_path)
+            file_path = os.path.join(f'data_{event}', f'{asset}-{event}-{new_date_string}.csv')
+            df = pd.read_csv(file_path)
         except:
-            file_path = os.path.join('parts', 'data', f'{asset}{year}.xlsx')
-            df = pd.read_excel(file_path)    
+            file_path = os.path.join('parts', f'data_{event}', f'{asset}-{event}-{new_date_string}.csv')
+            df = pd.read_csv(file_path)    
         try:
             close_prices = df.loc[timestep-10:timestep, 'Close']
             price_std = close_prices.std()
@@ -80,8 +98,7 @@ def get_account_value(trader, asset_prices):
     return total_value
 
 def calculate_interest(position_size, duration, asset, pool, rate_params):
-    if year == 'HR':
-        duration = duration/24
+    duration = duration/24
     optimal_utilization = rate_params[0]
     slope1 = rate_params[1]
     slope2 = rate_params[2]
