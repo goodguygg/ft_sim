@@ -129,7 +129,7 @@ def trading_decision(trader_passed, timestep, asset, asset_pricing, max_margin, 
     if asset in trader['positions_short'] and trader['positions_short'][asset]['quantity'] != 0:
         cs_price = spot_price
         if timestep - trader['positions_short'][asset]['timestep'] >= trader['avg_position_hold'] * np.random.uniform(low=0.8, high=1.4):
-            decision['short'] = close_short(trader, timestep, asset, cs_price, 0, pool, rate_params)
+            decision['short'] = close_short(trader, timestep, asset, cs_price, False, pool, rate_params)
 
         pnl = (trader['positions_short'][asset]['entry_price'] - cs_price) * trader['positions_short'][asset]['quantity']
         duration = timestep - trader[f'positions_short'][asset]['timestep']

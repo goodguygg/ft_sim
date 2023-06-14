@@ -69,9 +69,13 @@ def trading_policy(params, substep, state_history, previous_state):
                 if exec_long != None:
                     # print('longed')
                     num_of_longs += 1
+                    if trade_decision['long']['direction'] == 'close' and trade_decision['long']['liquidation'] == True:
+                        liquidations += 1
                 if exec_short != None:
                     # print('shorted')
                     num_of_shorts += 1
+                    if trade_decision['short']['direction'] == 'close' and trade_decision['short']['liquidation'] == True:
+                        liquidations += 1
             
             asset_prices = get_asset_prices(price_dict)
             for asset in pool['assets']:
