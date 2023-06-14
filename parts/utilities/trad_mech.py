@@ -368,28 +368,14 @@ def update_pool_open_short(pool, trader, asset, trade_decision, fees):
 
     return updated_pool
 
-def update_gen_lp(updated_pool, tmp_gen_lp, fee, interest, asset, asset_prices):
-    updated_lp_pool = copy.deepcopy(updated_pool)
+def update_gen_lp(tmp_gen_lp, fee, interest, asset):
     updated_gen_lp = copy.deepcopy(tmp_gen_lp)
 
     lot_size = (fee + interest) * 0.3
 
-    # calculate amount of lp tokens
-    tvl = pool_tvl_max(updated_lp_pool['holdings'], asset_prices)
-    adding_price = asset_prices[asset][0] if asset_prices[asset][0] < asset_prices[asset][1] else asset_prices[asset][1]
-    pool_size_change = lot_size * adding_price / tvl
-    lp_tokens = pool_size_change * updated_lp_pool['lp_shares']
+    updated_gen_lp['funds'][asset] += lot_size
 
-    # Add the fee, interest and tokens to the genesis lp
-    updated_gen_lp['liquidity'][asset] += lot_size
-    updated_gen_lp['pool_share'] += lp_tokens
-
-    # add fee, interest and tokens to the pool
-    updated_lp_pool['holdings'][asset] += lot_size
-    updated_lp_pool['lp_shares'] += lp_tokens
-    updated_lp_pool['lps']["genesis"][asset] += lot_size
-
-    return [updated_lp_pool, updated_gen_lp]
+    return updated_gen_lp
 
 def update_trader_close_long(trader, trade_decision, asset):
 
@@ -469,7 +455,8 @@ def execute_long(pool, trader, gen_lp, trade_decision, fees, asset, timestep, as
                 updated_pool = update_pool_open_long(tmp_pool, updated_trader, asset, trade_decision, fees)
                 if updated_pool != -1:
                     # Update the genesis lp and pool
-                    updated_pool, updated_gen_lp = update_gen_lp(updated_pool, tmp_gen_lp, fees[0], trade_decision['long']['interest_paid'], asset, asset_prices)
+                    # updated_pool, updated_gen_lp = update_gen_lp(updated_pool, tmp_gen_lp, fees[0], trade_decision['long']['interest_paid'], asset, asset_prices)
+                    updated_gen_lp = update_gen_lp(tmp_gen_lp, fees[0], trade_decision['long']['interest_paid'], asset)
                     tmp_pool = updated_pool
                     tmp_trader = updated_trader
                     tmp_gen_lp = updated_gen_lp
@@ -480,7 +467,8 @@ def execute_long(pool, trader, gen_lp, trade_decision, fees, asset, timestep, as
             updated_trader = update_trader_close_long(tmp_trader, trade_decision, asset)
             updated_pool = update_pool_close_long(tmp_pool, updated_trader, asset, trade_decision, fees)
             if updated_pool != -1:
-                updated_pool, updated_gen_lp = update_gen_lp(updated_pool, tmp_gen_lp, fees[0], trade_decision['long']['interest_paid'], asset, asset_prices)
+                #updated_pool, updated_gen_lp = update_gen_lp(updated_pool, tmp_gen_lp, fees[0], trade_decision['long']['interest_paid'], asset, asset_prices)
+                updated_gen_lp = update_gen_lp(tmp_gen_lp, fees[0], trade_decision['long']['interest_paid'], asset)
                 tmp_pool = updated_pool
                 tmp_trader = updated_trader
                 tmp_gen_lp = updated_gen_lp
@@ -502,7 +490,8 @@ def execute_short(pool, trader, gen_lp, trade_decision, fees, asset, timestep, a
                 updated_pool = update_pool_open_short(tmp_pool, updated_trader, asset, trade_decision, fees)
                 if updated_pool != -1:
                     # Update the genesis lp and pool
-                    updated_pool, updated_gen_lp = update_gen_lp(updated_pool, tmp_gen_lp, fees[1], trade_decision['short']['interest_paid'], trade_decision['short']['denomination'], asset_prices)
+                    # updated_pool, updated_gen_lp = update_gen_lp(updated_pool, tmp_gen_lp, fees[1], trade_decision['short']['interest_paid'], trade_decision['short']['denomination'], asset_prices)
+                    updated_gen_lp = update_gen_lp(tmp_gen_lp, fees[1], trade_decision['short']['interest_paid'], trade_decision['short']['denomination'])
                     tmp_pool = updated_pool
                     tmp_trader = updated_trader
                     tmp_gen_lp = updated_gen_lp
@@ -513,7 +502,8 @@ def execute_short(pool, trader, gen_lp, trade_decision, fees, asset, timestep, a
             updated_trader = update_trader_close_short(tmp_trader, trade_decision, asset)
             updated_pool = update_pool_close_short(tmp_pool, updated_trader, asset, trade_decision, fees)
             if updated_pool != -1:
-                updated_pool, updated_gen_lp = update_gen_lp(updated_pool, tmp_gen_lp, fees[1], trade_decision['short']['interest_paid'], trade_decision['short']['denomination'], asset_prices)
+                # updated_pool, updated_gen_lp = update_gen_lp(updated_pool, tmp_gen_lp, fees[1], trade_decision['short']['interest_paid'], trade_decision['short']['denomination'], asset_prices)
+                updated_gen_lp = update_gen_lp(tmp_gen_lp, fees[1], trade_decision['short']['interest_paid'], trade_decision['short']['denomination'])
                 tmp_pool = updated_pool
                 tmp_trader = updated_trader
                 tmp_gen_lp = updated_gen_lp
@@ -521,59 +511,82 @@ def execute_short(pool, trader, gen_lp, trade_decision, fees, asset, timestep, a
             
     return None
 
+# def update_gen_lp_depr(updated_pool, tmp_gen_lp, fee, interest, asset, asset_prices):
+#     updated_lp_pool = copy.deepcopy(updated_pool)
+#     updated_gen_lp = copy.deepcopy(tmp_gen_lp)
 
-def execute_trade(pool, trader, gen_lp, trade_decision, fees, asset, timestep, asset_prices):
-    tmp_pool = copy.deepcopy(pool)
-    tmp_trader = copy.deepcopy(trader)
-    tmp_gen_lp = copy.deepcopy(gen_lp)
+#     lot_size = (fee + interest) * 0.3
 
-    if trade_decision['long'] != None:
-        if trade_decision['long']['direction'] == 'open':
-            # Update the trader subtract the liquidity, add position with collateral, if position already exists subtract interest
-            updated_trader = update_trader_open_long(tmp_trader, trade_decision, fees, asset, timestep)
-            if updated_trader != -1:
-                # Update the pool
-                updated_pool = update_pool_open_long(tmp_pool, updated_trader, asset, trade_decision, fees)
-                if updated_pool != -1:
-                    # Update the genesis lp and pool
-                    updated_pool, updated_gen_lp = update_gen_lp(updated_pool, tmp_gen_lp, fees[0], trade_decision['long']['interest_paid'], asset, asset_prices)
-                    tmp_pool = updated_pool
-                    tmp_trader = updated_trader
-                    tmp_gen_lp = updated_gen_lp
+#     # calculate amount of lp tokens
+#     tvl = pool_tvl_max(updated_lp_pool['holdings'], asset_prices)
+#     adding_price = asset_prices[asset][0] if asset_prices[asset][0] < asset_prices[asset][1] else asset_prices[asset][1]
+#     pool_size_change = lot_size * adding_price / tvl
+#     lp_tokens = pool_size_change * updated_lp_pool['lp_shares']
 
-        elif trade_decision['long']['direction'] == 'close':
-            # Update the trader subtract the liquidity, add position with collateral, if position already exists subtract interest
-            updated_trader = update_trader_close_long(tmp_trader, trade_decision, asset)
-            updated_pool = update_pool_close_long(tmp_pool, updated_trader, asset, trade_decision, fees)
-            if updated_pool != -1:
-                updated_pool, updated_gen_lp = update_gen_lp(updated_pool, tmp_gen_lp, fees[0], trade_decision['long']['interest_paid'], asset, asset_prices)
-                tmp_pool = updated_pool
-                tmp_trader = updated_trader
-                tmp_gen_lp = updated_gen_lp
+#     # Add the fee, interest and tokens to the genesis lp
+#     updated_gen_lp['liquidity'][asset] += lot_size
+#     updated_gen_lp['pool_share'] += lp_tokens
+
+#     # add fee, interest and tokens to the pool
+#     updated_lp_pool['holdings'][asset] += lot_size
+#     updated_lp_pool['lp_shares'] += lp_tokens
+#     updated_lp_pool['lps']["genesis"][asset] += lot_size
+
+#     return [updated_lp_pool, updated_gen_lp]
 
 
-    elif trade_decision['short'] != None:
-        if trade_decision['short']['direction'] == 'open':
-            # Update the trader subtract the liquidity, add position with collateral, if position already exists subtract interest
-            updated_trader = update_trader_open_short(tmp_trader, trade_decision, fees, asset, timestep)
-            if updated_trader != -1:
-                # Update the pool
-                updated_pool = update_pool_open_short(tmp_pool, updated_trader, asset, trade_decision, fees)
-                if updated_pool != -1:
-                    # Update the genesis lp and pool
-                    updated_pool, updated_gen_lp = update_gen_lp(updated_pool, tmp_gen_lp, fees[0], trade_decision['short']['interest_paid'], asset, asset_prices)
-                    tmp_pool = updated_pool
-                    tmp_trader = updated_trader
-                    tmp_gen_lp = updated_gen_lp
+# def execute_trade(pool, trader, gen_lp, trade_decision, fees, asset, timestep, asset_prices):
+#     tmp_pool = copy.deepcopy(pool)
+#     tmp_trader = copy.deepcopy(trader)
+#     tmp_gen_lp = copy.deepcopy(gen_lp)
 
-        elif trade_decision['short']['direction'] == 'close':
-            # Update the trader subtract the liquidity, add position with collateral, if position already exists subtract interest
-            updated_trader = update_trader_close_short(tmp_trader, trade_decision, asset)
-            updated_pool = update_pool_close_short(tmp_pool, updated_trader, asset, trade_decision, fees)
-            if updated_pool != -1:
-                updated_pool, updated_gen_lp = update_gen_lp(updated_pool, tmp_gen_lp, fees[0], trade_decision['short']['interest_paid'], asset, asset_prices)
-                tmp_pool = updated_pool
-                tmp_trader = updated_trader
-                tmp_gen_lp = updated_gen_lp
+#     if trade_decision['long'] != None:
+#         if trade_decision['long']['direction'] == 'open':
+#             # Update the trader subtract the liquidity, add position with collateral, if position already exists subtract interest
+#             updated_trader = update_trader_open_long(tmp_trader, trade_decision, fees, asset, timestep)
+#             if updated_trader != -1:
+#                 # Update the pool
+#                 updated_pool = update_pool_open_long(tmp_pool, updated_trader, asset, trade_decision, fees)
+#                 if updated_pool != -1:
+#                     # Update the genesis lp and pool
+#                     updated_pool, updated_gen_lp = update_gen_lp(updated_pool, tmp_gen_lp, fees[0], trade_decision['long']['interest_paid'], asset, asset_prices)
+#                     tmp_pool = updated_pool
+#                     tmp_trader = updated_trader
+#                     tmp_gen_lp = updated_gen_lp
 
-    return tmp_pool, tmp_trader, tmp_gen_lp
+#         elif trade_decision['long']['direction'] == 'close':
+#             # Update the trader subtract the liquidity, add position with collateral, if position already exists subtract interest
+#             updated_trader = update_trader_close_long(tmp_trader, trade_decision, asset)
+#             updated_pool = update_pool_close_long(tmp_pool, updated_trader, asset, trade_decision, fees)
+#             if updated_pool != -1:
+#                 updated_pool, updated_gen_lp = update_gen_lp(updated_pool, tmp_gen_lp, fees[0], trade_decision['long']['interest_paid'], asset, asset_prices)
+#                 tmp_pool = updated_pool
+#                 tmp_trader = updated_trader
+#                 tmp_gen_lp = updated_gen_lp
+
+
+#     elif trade_decision['short'] != None:
+#         if trade_decision['short']['direction'] == 'open':
+#             # Update the trader subtract the liquidity, add position with collateral, if position already exists subtract interest
+#             updated_trader = update_trader_open_short(tmp_trader, trade_decision, fees, asset, timestep)
+#             if updated_trader != -1:
+#                 # Update the pool
+#                 updated_pool = update_pool_open_short(tmp_pool, updated_trader, asset, trade_decision, fees)
+#                 if updated_pool != -1:
+#                     # Update the genesis lp and pool
+#                     updated_pool, updated_gen_lp = update_gen_lp(updated_pool, tmp_gen_lp, fees[0], trade_decision['short']['interest_paid'], asset, asset_prices)
+#                     tmp_pool = updated_pool
+#                     tmp_trader = updated_trader
+#                     tmp_gen_lp = updated_gen_lp
+
+#         elif trade_decision['short']['direction'] == 'close':
+#             # Update the trader subtract the liquidity, add position with collateral, if position already exists subtract interest
+#             updated_trader = update_trader_close_short(tmp_trader, trade_decision, asset)
+#             updated_pool = update_pool_close_short(tmp_pool, updated_trader, asset, trade_decision, fees)
+#             if updated_pool != -1:
+#                 updated_pool, updated_gen_lp = update_gen_lp(updated_pool, tmp_gen_lp, fees[0], trade_decision['short']['interest_paid'], asset, asset_prices)
+#                 tmp_pool = updated_pool
+#                 tmp_trader = updated_trader
+#                 tmp_gen_lp = updated_gen_lp
+
+#     return tmp_pool, tmp_trader, tmp_gen_lp

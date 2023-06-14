@@ -1,10 +1,10 @@
 
 
 initial_conditions = {
-    'genesis_traders': 20,
-    'genesis_providers': 10,
+    'genesis_traders': 1,
+    'genesis_providers': 1,
     'num_of_hrs': 10,
-    'initial_liquidity': {'BTC': 5, 'ETH': 75, 'SOL': 7500, 'USDC': 150000, 'USDT': 150000},
+    'initial_liquidity': {'BTC': 1, 'ETH': 15, 'SOL': 1500, 'USDC': 30000, 'USDT': 30000},
 }
 
 sys_params = {

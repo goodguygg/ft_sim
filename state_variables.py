@@ -12,8 +12,8 @@ def generate_providers(n_providers):
             'id': 'genesis',
             'funds': {'BTC': 0, 'ETH': 0, 'SOL': 0, 'USDC': 0, 'USDT': 0},
             'liquidity': copy.deepcopy(initial_conditions['initial_liquidity']),
-            'add_threshold': {'BTC': 1000, 'SOL': 1000, 'ETH': 1000, 'USDC': 1000, 'USDT': 1000},
-            'remove_threshold': {'BTC': 1000, 'SOL': 1000, 'ETH': 1000, 'USDC': 1000, 'USDT': 1000},
+            'add_threshold': {'BTC': 1000000, 'SOL': 1000000, 'ETH': 1000000, 'USDC': 1000000, 'USDT': 1000000},
+            'remove_threshold': {'BTC': 1000000, 'SOL': 1000000, 'ETH': 1000000, 'USDC': 1000000, 'USDT': 1000000},
             'pool_share': 100
         }
 
@@ -43,7 +43,7 @@ def generate_traders(n_traders):
             'positions_long': {},  # {token: {quantity: 0, entry_price: 0, collateral: 0, timestep: 0}}
             'positions_short': {},  # {token: {quantity: 0, entry_price: 0, collateral: {amount: 0, denomination: "USDC"}, timestep: 0}}
             'PnL': 0,
-            'avg_position_hold': np.random.uniform(low=1, high=10),
+            'avg_position_hold': np.random.uniform(low=1, high=100),
             'risk_factor': np.random.uniform(low=1, high=10)
         }
         traders[i] = trader

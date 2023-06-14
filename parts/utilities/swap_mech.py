@@ -112,41 +112,50 @@ def swap_tokens_pool(pool, token_in, token_in_amt, token_out, token_out_amt, swa
     else:
         return -1
     
-def update_gen_lp_swap(updated_pool, tmp_gen_lp, fee, asset, asset_prices):
-    updated_lp_pool = copy.deepcopy(updated_pool)
+def update_gen_lp_swap(tmp_gen_lp, fee, asset):
     updated_gen_lp = copy.deepcopy(tmp_gen_lp)
 
     lot_size = fee * 0.3
+    updated_gen_lp['funds'][asset] += lot_size
 
-    # calculate amount of lp tokens
-    tvl = pool_tvl_max(updated_lp_pool['holdings'], asset_prices)
-    adding_price = asset_prices[asset][0] if asset_prices[asset][0] < asset_prices[asset][1] else asset_prices[asset][1]
-    pool_size_change = lot_size * adding_price / tvl
-    lp_tokens = pool_size_change * updated_lp_pool['lp_shares']
+    return updated_gen_lp
 
-    # Add the fee, interest and tokens to the genesis lp
-    updated_gen_lp['liquidity'][asset] += lot_size
-    updated_gen_lp['pool_share'] += lp_tokens
+# def update_gen_lp_swap_depr(updated_pool, tmp_gen_lp, fee, asset, asset_prices):
+#     updated_lp_pool = copy.deepcopy(updated_pool)
+#     updated_gen_lp = copy.deepcopy(tmp_gen_lp)
 
-    # add fee, interest and tokens to the pool
-    updated_lp_pool['holdings'][asset] += lot_size
-    updated_lp_pool['lp_shares'] += lp_tokens
-    updated_lp_pool['lps']["genesis"][asset] += lot_size
+#     lot_size = fee * 0.3
 
-    return [updated_lp_pool, updated_gen_lp]
+#     # calculate amount of lp tokens
+#     tvl = pool_tvl_max(updated_lp_pool['holdings'], asset_prices)
+#     adding_price = asset_prices[asset][0] if asset_prices[asset][0] < asset_prices[asset][1] else asset_prices[asset][1]
+#     pool_size_change = lot_size * adding_price / tvl
+#     lp_tokens = pool_size_change * updated_lp_pool['lp_shares']
+
+#     # Add the fee, interest and tokens to the genesis lp
+#     updated_gen_lp['liquidity'][asset] += lot_size
+#     updated_gen_lp['pool_share'] += lp_tokens
+
+#     # add fee, interest and tokens to the pool
+#     updated_lp_pool['holdings'][asset] += lot_size
+#     updated_lp_pool['lp_shares'] += lp_tokens
+#     updated_lp_pool['lps']["genesis"][asset] += lot_size
+
+#     return [updated_lp_pool, updated_gen_lp]
 
 def swap_tokens(pool, trader, gen_lp, token_in, token_in_amt, token_out, token_out_amt, swap_fee, asset_prices):
     tmp_pool = copy.deepcopy(pool)
     tmp_trader = copy.deepcopy(trader)
     tmp_gen_lp = copy.deepcopy(gen_lp)
 
-
     updated_trader = swap_tokens_trader(tmp_trader, token_in, token_in_amt, token_out, token_out_amt, swap_fee)
     if updated_trader != -1:
         updated_pool = swap_tokens_pool(tmp_pool, token_in, token_in_amt, token_out, token_out_amt, swap_fee, asset_prices)
         if updated_pool != -1:
-            updated_pool, updated_gen_lp = update_gen_lp_swap(updated_pool, tmp_gen_lp, swap_fee[0], token_out, asset_prices)
-            updated_pool, updated_gen_lp = update_gen_lp_swap(updated_pool, updated_gen_lp, swap_fee[1], token_in, asset_prices)
+            # updated_pool, updated_gen_lp = update_gen_lp_swap(updated_pool, tmp_gen_lp, swap_fee[0], token_out, asset_prices)
+            # updated_pool, updated_gen_lp = update_gen_lp_swap(updated_pool, updated_gen_lp, swap_fee[1], token_in, asset_prices)
+            updated_gen_lp = update_gen_lp_swap(tmp_gen_lp, swap_fee[0], token_out)
+            updated_gen_lp = update_gen_lp_swap(updated_gen_lp, swap_fee[1], token_in)
             return updated_pool, updated_trader, updated_gen_lp
         
     return None
