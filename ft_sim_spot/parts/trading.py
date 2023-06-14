@@ -19,7 +19,7 @@ def trading_policy(params, substep, state_history, previous_state):
     p = 0
     for pool_id in pools.keys():
         pool = pools[pool_id]
-        price_dict = fetch_asset_prices(pool['assets'], timestep)
+        price_dict = fetch_asset_prices(pool['assets'], timestep, params['event'], params['start_date'])
 
         for trader_id in traders.keys():
             trader = traders[trader_id]
@@ -119,28 +119,6 @@ def trading_policy(params, substep, state_history, previous_state):
 
                 # update provider
                 liquidity_providers[provider_id]['funds'][asset] += provider_share
-
-
-        # # calculate amount of lp tokens
-        # for provider_id in pool['lps'].keys():
-        #     for asset in pool['lps'][provider_id].keys():
-        #         # calculate number of lp shares
-        #         tvl = pool_tvl_max(pool['holdings'], asset_prices)
-        #         provider_share = total_provider_fees_collected[asset] * (liquidity_providers[provider_id]['liquidity'][asset] / pool['holdings'][asset])
-        #         if provider_id == 'genesis':
-        #             provider_share = total_provider_fees_collected[asset] * ((liquidity_providers[provider_id]['liquidity'][asset] - total_provider_fees_collected[asset] * 0.3 / 0.7) / pool['holdings'][asset])
-        #         adding_price = asset_prices[asset][0] if asset_prices[asset][0] < asset_prices[asset][1] else asset_prices[asset][1]
-        #         pool_size_change = provider_share * adding_price / tvl
-        #         lp_tokens = pool_size_change * pool['lp_shares']
-
-        #         # update provider
-        #         liquidity_providers[provider_id]['liquidity'][asset] += provider_share
-        #         liquidity_providers[provider_id]['pool_share'] += lp_tokens
-
-        #         # update pool
-        #         pool['lps'][provider_id][asset] += provider_share
-        #         pool['lp_shares'] += lp_tokens
-        #         pool['holdings'][asset] += provider_share
 
         pools[pool_id] = pool
         p += 1

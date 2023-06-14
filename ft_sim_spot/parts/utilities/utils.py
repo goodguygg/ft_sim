@@ -6,10 +6,7 @@ import os
 import random
 from datetime import datetime, timedelta
 
-event = 'FTX'
-start_date = '2022-11-01'
-
-def fetch_asset_prices(assets, timestep):
+def fetch_asset_prices(assets, timestep, event, start_date):
     asset_prices = {}
     num_days = math.floor(timestep / 24)
     timestep = timestep % 24
@@ -39,7 +36,7 @@ def get_asset_prices(asset_prices):
         asset_prices[asset] = [asset_prices[asset][0] + random.random() * (asset_prices[asset][1] - asset_prices[asset][0]), asset_prices[asset][2]]
     return asset_prices
 
-def get_asset_volatility(assets, timestep):
+def get_asset_volatility(assets, timestep, event, start_date):
     asset_volatility = {}
     num_days = math.floor(timestep / 24)
     timestep = timestep % 24

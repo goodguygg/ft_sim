@@ -13,9 +13,9 @@ def liquidity_policy(params, substep, state_history, previous_state):
     for pool_id in pools.keys():
         pool = pools[pool_id]
         gen_prov = copy.deepcopy(liquidity_providers['genesis'])
-        asset_volatility = get_asset_volatility(pool['assets'], timestep)
+        asset_volatility = get_asset_volatility(pool['assets'], timestep, params['event'], params['start_date'])
         fees_collected.append({ast: 0 for ast in pool['assets']})
-        price_dict = fetch_asset_prices(pool['assets'], timestep)
+        price_dict = fetch_asset_prices(pool['assets'], timestep, params['event'], params['start_date'])
 
         # print(pool['yield'])
 

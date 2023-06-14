@@ -7,7 +7,7 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 import json
 from openpyxl.chart import LineChart, Reference, BarChart, AreaChart, series
 from openpyxl.styles import PatternFill
-from sys_params import initial_conditions
+from sys_params import initial_conditions, sys_params
 
 
 def run():
@@ -16,7 +16,7 @@ def run():
     Run simulation
     '''
     try:
-        tst_price = fetch_asset_prices(['BTC', 'ETH', 'SOL', 'USDC', 'USDT'], initial_conditions['num_of_hrs'])
+        tst_price = fetch_asset_prices(['BTC', 'ETH', 'SOL', 'USDC', 'USDT'], initial_conditions['num_of_hrs'], sys_params['event'][0], sys_params['start_date'][0])
     except:
         raise ValueError("Number of hours is out of range")
 
@@ -726,9 +726,9 @@ def main():
     '''
     df = run()
     df = postprocessing(df)
-    to_xslx(df, 'run') 
+    to_xslx(df, f'run_{sys_params["event"][0]}') 
     df = df[::3].reset_index(drop=True)
-    to_xslx(df, 'run_merged') 
+    to_xslx(df, f'run_merged_{sys_params["event"][0]}') 
     return df
 
 if __name__ == '__main__':

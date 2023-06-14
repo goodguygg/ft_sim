@@ -1,10 +1,10 @@
 from parts.utilities.utils import * 
-from sys_params import initial_conditions
+from sys_params import initial_conditions, sys_params
 
 def generate_providers(n_providers):
     liquidity_providers = {}
     assets = ['BTC', 'ETH', 'SOL', 'USDC', 'USDT']
-    price_dict = fetch_asset_prices(assets, 0)
+    price_dict = fetch_asset_prices(assets, 0, sys_params['event'][0], sys_params['start_date'][0])
     asset_prices = get_asset_prices(price_dict)
 
     # initialize protocol provider
@@ -34,7 +34,7 @@ def generate_providers(n_providers):
 def generate_traders(n_traders):
     traders = {}
     assets = ['BTC', 'ETH', 'SOL', 'USDC', 'USDT']
-    price_dict = fetch_asset_prices(assets, 0)
+    price_dict = fetch_asset_prices(assets, 0, sys_params['event'][0], sys_params['start_date'][0])
     asset_prices = get_asset_prices(price_dict)
     for i in range(n_traders):
         trader = {
@@ -52,7 +52,7 @@ def generate_traders(n_traders):
 def generate_pools(n_pools):
     pools = {}
     assets = ['BTC', 'ETH', 'SOL', 'USDC', 'USDT']
-    price_dict = fetch_asset_prices(assets, 0)
+    price_dict = fetch_asset_prices(assets, 0, sys_params['event'][0], sys_params['start_date'][0])
     asset_prices = get_asset_prices(price_dict)
 
     for i in range(n_pools):

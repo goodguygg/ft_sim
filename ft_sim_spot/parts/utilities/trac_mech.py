@@ -1,11 +1,11 @@
 from .utils import *
 
 
-def add_providers(liquidity_providers, traction):
+def add_providers(liquidity_providers, traction, timestep, event, start_date):
     lps = copy.deepcopy(liquidity_providers)
 
     assets = ['BTC', 'ETH', 'SOL', 'USDC', 'USDT']
-    price_dict = fetch_asset_prices(assets, 0)
+    price_dict = fetch_asset_prices(assets, timestep, event, start_date)
     asset_prices = get_asset_prices(price_dict)
 
     next_prov = len(lps) + 1
@@ -25,10 +25,10 @@ def add_providers(liquidity_providers, traction):
 
     return lps
 
-def add_traders(traders, traction):
+def add_traders(traders, traction, timestep, event, start_date):
     trs = copy.deepcopy(traders)
     assets = ['BTC', 'ETH', 'SOL', 'USDC', 'USDT']
-    price_dict = fetch_asset_prices(assets, 0)
+    price_dict = fetch_asset_prices(assets, timestep, event, start_date)
     asset_prices = get_asset_prices(price_dict)
 
     next_tr = len(trs) + 1

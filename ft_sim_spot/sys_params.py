@@ -3,7 +3,7 @@
 initial_conditions = {
     'genesis_traders': 20,
     'genesis_providers': 10,
-    'num_of_hrs': 311,
+    'num_of_hrs': 50,
     'initial_liquidity': {'BTC': 1, 'ETH': 15, 'SOL': 1500, 'USDC': 30000, 'USDT': 30000},
 }
 
@@ -21,4 +21,6 @@ sys_params = {
     'lp_traction': [0.03],
     'trade_chance': [[0.1, 0.9]], # 1st value is the barrier for longs, second is for shorts
     'swap_chance': [[0.1, 0.9]], # chance of swapping in and swapping out tokens 
+    'event': ['luna'],
+    'start_date': ['2022-04-25']
 }
