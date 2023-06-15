@@ -54,6 +54,8 @@ def generate_pools(n_pools):
     assets = ['BTC', 'ETH', 'SOL', 'USDC', 'USDT']
     price_dict = fetch_asset_prices(assets, 0, sys_params['event'][0], sys_params['start_date'][0])
     asset_prices = get_asset_prices(price_dict)
+    init_liq = copy.deepcopy(initial_conditions['initial_liquidity'])
+    init_tvl = pool_tvl(init_liq, asset_prices)
 
     for i in range(n_pools):
         #token_a, token_b = np.random.choice(tokens, size=2, replace=False)  # Choose two different tokens for the pool
@@ -74,9 +76,10 @@ def generate_pools(n_pools):
             'loan_book_longs': {},  # {agent_id: {token: {amount, collateral}}}
             'loan_book_shorts': {},  # {agent_id: {token: {amount, collateral}}}
             'utilization_mult': {'BTC': 0.01, 'SOL': 0.01, 'ETH': 0.01, 'USDC': 0.01, 'USDT': 0.01},
-            'fees': {'open': 0.01, 'close': 0.01},
+            'fees': initial_conditions['pool_fees'],
             'lp_shares': 100,
-            'tvl': pool_tvl(copy.deepcopy(initial_conditions['initial_liquidity']), asset_prices)
+            'tvl': init_tvl,
+            'pool_ratios': {'BTC': init_liq['BTC'] * asset_prices['BTC'][0] / init_tvl, 'SOL': init_liq['SOL'] * asset_prices['SOL'][0] / init_tvl, 'ETH': init_liq['ETH'] * asset_prices['ETH'][0] / init_tvl, 'USDC': init_liq['USDC'] * asset_prices['USDC'][0] / init_tvl, 'USDT': init_liq['USDT'] * asset_prices['USDT'][0] / init_tvl}
         }
     pools[i] = pool
     return pools

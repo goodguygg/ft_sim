@@ -201,7 +201,9 @@ def trading_decision(trader_passed, timestep, asset, asset_pricing, max_margin, 
                 swap = 0    
                 # Choose the stable to use
                 if asset not in trader['positions_short']:
-                    if trader['liquidity']['USDC'] > collateral_added:
+                    if trader['liquidity']['USDC'] > collateral_added and trader['liquidity']['USDT'] > collateral_added:
+                        denomination = 'USDC' if random.random() > 0.5 else 'USDT'
+                    elif trader['liquidity']['USDC'] > collateral_added:
                         denomination = 'USDC'
                     elif trader['liquidity']['USDT'] > collateral_added:
                         denomination = 'USDT'

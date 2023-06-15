@@ -7,7 +7,7 @@ import os
 def fetch_data_ftx():
     tickers = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'USDC-USD', 'USDT-USD']
     for ticker in tickers:
-        df = yf.Ticker(ticker).history(start="2022-11-01", end="2022-11-14", interval="1h")
+        df = yf.Ticker(ticker).history(start="2022-11-01", end="2022-11-22", interval="1h")
 
         df.reset_index(inplace=True)
         df["Datetime"] = [str(val)[:-15] for val in df['Datetime']]

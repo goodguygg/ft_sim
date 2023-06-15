@@ -6,11 +6,11 @@ import numpy as np
 def liquidity_provider_decision(liquidity_provider, pool_yield, asset_prices, asset_volatility):
     assets = pool_yield.keys()
     decision = {asset: 0 for asset in assets}
-    liquidity_provider = copy.deepcopy(liquidity_provider)
+    lp = copy.deepcopy(liquidity_provider)
 
     for asset in assets:
-        add_threshold = liquidity_provider['add_threshold'][asset]
-        remove_threshold = liquidity_provider['remove_threshold'][asset]
+        add_threshold = lp['add_threshold'][asset]
+        remove_threshold = lp['remove_threshold'][asset]
 
         # Adjust thresholds based on volatility
         if asset_volatility[asset] is not None:
@@ -21,21 +21,21 @@ def liquidity_provider_decision(liquidity_provider, pool_yield, asset_prices, as
 
         if asset_yield > add_threshold:
             # The provider adds liquidity proportional to the excess yield
-            liquidity_to_add = (liquidity_provider['funds'][asset] / asset_prices[asset][0]) * 10 * (asset_yield - add_threshold)
+            liquidity_to_add = (lp['funds'][asset] / asset_prices[asset][0]) * 10 * (asset_yield - add_threshold)
             decision[asset] += liquidity_to_add
             #print(f"attempt to add {liquidity_to_add} {asset}")
 
         elif asset_yield < remove_threshold:
             # The provider removes liquidity proportional to the shortfall
-            liquidity_to_remove = liquidity_provider['liquidity'][asset] * 10 * (remove_threshold - asset_yield)
+            liquidity_to_remove = lp['liquidity'][asset] * 10 * (remove_threshold - asset_yield)
             decision[asset] -= liquidity_to_remove
             #print(f"attempt to remove {liquidity_to_remove} {asset}")
 
     
     return decision
 
-def liquidity_fee(pool, asset, provider_decision, asset_prices, base_fee, ratio_mult):
-    pool = copy.deepcopy(pool)
+def liquidity_fee(pool_init, asset, provider_decision, asset_prices, base_fee, ratio_mult):
+    pool = copy.deepcopy(pool_init)
     # if token ratio is improved:           
     #     fee = base_fee / ratio_fee
     # otherwise:         
@@ -69,7 +69,7 @@ def liquidity_fee(pool, asset, provider_decision, asset_prices, base_fee, ratio_
 
     return ratio_fee
 
-def provide_liquidity(pool, provider, gen_lp, lot_size, asset, provider_pnl, fee, asset_prices):
+def provide_liquidity(pool, provider, gen_lp, lot_size, asset, fee, asset_prices):
     tmp_pool = copy.deepcopy(pool)
     tmp_provider = copy.deepcopy(provider)
     tmp_gen = copy.deepcopy(gen_lp)
@@ -113,14 +113,16 @@ def provide_liquidity(pool, provider, gen_lp, lot_size, asset, provider_pnl, fee
         # check if provider has enough liquidity in funds
         if tmp_provider['id'] in tmp_pool['lps'] and asset in tmp_pool['lps'][tmp_provider['id']] and abs(lp_tokens_lot) <= tmp_provider['pool_share'] and abs(lot_size) + fee <= tmp_provider['liquidity'][asset]:
             # update provider's liquidity 
-            tmp_provider['funds'][asset] += abs(lot_size) + provider_pnl - fee
+            tmp_provider['funds'][asset] += abs(lot_size) - fee
             tmp_provider['pool_share'] -= abs(lp_tokens_lot)
-            tmp_provider['liquidity'][asset] -= (abs(lot_size) - provider_pnl)
+            tmp_provider['liquidity'][asset] -= abs(lot_size)
             # update genesis provider's liquidity
             tmp_gen['funds'][asset] += fee
             # update pool holdings, lps and lp shares
             tmp_pool['total_fees_collected'][asset] += fee
-            tmp_pool['holdings'][asset] += lot_size - provider_pnl
+            tmp_pool['holdings'][asset] += (lot_size)
+            # if asset == 'SOL':
+            #     print(f"removing {lot_size} with pnl {provider_pnl}")
             tmp_pool['lp_shares'] -= lp_tokens_lot
             tmp_pool['lps'][tmp_provider['id']][asset] += lot_size
 
@@ -129,3 +131,68 @@ def provide_liquidity(pool, provider, gen_lp, lot_size, asset, provider_pnl, fee
             return -1   
     else:
         return -1
+
+
+
+# def provide_liquidity(pool, provider, gen_lp, lot_size, asset, provider_pnl, fee, asset_prices):
+#     tmp_pool = copy.deepcopy(pool)
+#     tmp_provider = copy.deepcopy(provider)
+#     tmp_gen = copy.deepcopy(gen_lp)
+
+#     if lot_size > 0:
+#         # check if provider has enough liquidity in funds
+#         if tmp_provider['funds'][asset] < lot_size + fee:
+#             return -1
+#         # calculate the amount of lp tokens allocated to provider v2
+#         tvl = pool_tvl_max(tmp_pool['holdings'], asset_prices)
+#         adding_price = asset_prices[asset][0]
+#         pool_size_change_lot = lot_size * adding_price / tvl
+#         lp_tokens_lot = pool_size_change_lot * tmp_pool['lp_shares']
+#         # update provider's liquidity
+#         tmp_provider['funds'][asset] -= (lot_size + fee)
+#         tmp_provider['liquidity'][asset] += lot_size
+#         tmp_provider['pool_share'] += lp_tokens_lot
+#         # update genesis provider's liquidity
+#         tmp_gen['funds'][asset] += fee
+#         # to holdings add the lot and collected fee v1
+#         tmp_pool['total_fees_collected'][asset] += fee
+#         tmp_pool['holdings'][asset] += lot_size
+#         tmp_pool['lp_shares'] += lp_tokens_lot
+
+#         if tmp_provider['id'] in tmp_pool['lps']:
+#             if asset in tmp_pool['lps'][tmp_provider['id']]:
+#                 tmp_pool['lps'][tmp_provider['id']][asset] += lot_size
+#             else:
+#                 tmp_pool['lps'][tmp_provider['id']][asset] = lot_size
+#         else:
+#             tmp_pool['lps'][tmp_provider['id']] = {asset: lot_size}
+#         # print(tmp_pool['lps']['genesis'])
+#         return [tmp_pool, tmp_provider, tmp_gen]
+    
+#     elif lot_size < 0:
+#         # calculate the amount of lp tokens allocated to provider
+#         tvl = pool_tvl_min(tmp_pool['holdings'], asset_prices)
+#         removing_price = asset_prices[asset][0]
+#         pool_size_change_lot = lot_size * removing_price / tvl
+#         lp_tokens_lot = pool_size_change_lot * tmp_pool['lp_shares']
+#         # check if provider has enough liquidity in funds
+#         if tmp_provider['id'] in tmp_pool['lps'] and asset in tmp_pool['lps'][tmp_provider['id']] and abs(lp_tokens_lot) <= tmp_provider['pool_share'] and abs(lot_size) + fee <= tmp_provider['liquidity'][asset]:
+#             # update provider's liquidity 
+#             tmp_provider['funds'][asset] += abs(lot_size) + provider_pnl - fee
+#             tmp_provider['pool_share'] -= abs(lp_tokens_lot)
+#             tmp_provider['liquidity'][asset] -= (abs(lot_size) - provider_pnl)
+#             # update genesis provider's liquidity
+#             tmp_gen['funds'][asset] += fee
+#             # update pool holdings, lps and lp shares
+#             tmp_pool['total_fees_collected'][asset] += fee
+#             tmp_pool['holdings'][asset] += (lot_size - provider_pnl)
+#             if asset == 'SOL':
+#                 print(f"removing {lot_size} with pnl {provider_pnl}")
+#             tmp_pool['lp_shares'] -= lp_tokens_lot
+#             tmp_pool['lps'][tmp_provider['id']][asset] += lot_size
+
+#             return [tmp_pool, tmp_provider, tmp_gen]
+#         else:
+#             return -1   
+#     else:
+#         return -1

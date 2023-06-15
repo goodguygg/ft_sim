@@ -1,10 +1,11 @@
 
 
 initial_conditions = {
-    'genesis_traders': 10,
-    'genesis_providers': 5,
-    'num_of_hrs': 50,
-    'initial_liquidity': {'BTC': 1, 'ETH': 15, 'SOL': 1500, 'USDC': 30000, 'USDT': 30000},
+    'genesis_traders': 100,
+    'genesis_providers': 30,
+    'num_of_hrs': 311,
+    'initial_liquidity': {'BTC': 1, 'ETH': 13, 'SOL': 625, 'USDC': 20000, 'USDT': 20000},
+    'pool_fees': {'open': 0.01, 'close': 0.01}
 }
 
 sys_params = {
@@ -17,8 +18,8 @@ sys_params = {
     'base_fees_swap': [{'BTC': 0.00025, 'ETH': 0.00025, 'SOL': 0.00015, 'USDC': 0.0001, 'USDT': 0.0001}],
     'om_fees_swap': [[0.01, 0.005]],
     # simulation params
-    'trader_traction': [0.05],
-    'lp_traction': [0.03],
+    'trader_traction': [0.0],
+    'lp_traction': [0.0],
     'trade_chance': [[0.1, 0.9]], # 1st value is the barrier for longs, second is for shorts
     'swap_chance': [[0.1, 0.9]], # chance of swapping in and swapping out tokens 
     'event': ['FTX'],

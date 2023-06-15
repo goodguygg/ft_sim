@@ -35,9 +35,7 @@ def trading_policy(params, substep, state_history, previous_state):
                 if trade_decision['long'] == None and trade_decision['short'] == None:
                     # print('no trade')
                     continue
-
                 # print('trade decision', trade_decision)
-
                 if trade_decision['short'] != None and trade_decision['short']['direction'] == 'open':
                     if trade_decision['short']['swap'] != 0:
                         tokens_in = trade_decision['short']['denomination']
@@ -48,6 +46,8 @@ def trading_policy(params, substep, state_history, previous_state):
                         if swap_res != None:
                             pool, trader, gen_lp = swap_res
                             num_of_swaps += 1
+                        else:
+                            continue
 
                 # Fetch the fee amount
                 fees = trading_fee(pool, asset, trade_decision, params['rate_params'], params['ratio_mult'])
@@ -108,6 +108,7 @@ def trading_policy(params, substep, state_history, previous_state):
         pool['open_pnl_short'] = open_pnl[1]
 
         total_provider_fees_collected = {}
+
         # update yield and lp fees
         for asset in pool['assets']:
             total_provider_fees_collected[asset] = (pool['total_fees_collected'][asset] - previous_state['pools'][pool_id]['total_fees_collected'][asset]) * 0.7

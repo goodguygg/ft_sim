@@ -1,6 +1,7 @@
 from .utilities.utils import *
 from .utilities.liq_mech import *
 import copy
+import time
 
 def liquidity_policy(params, substep, state_history, previous_state):
     liquidity_providers = copy.deepcopy(previous_state['liquidity_providers'])
@@ -15,13 +16,38 @@ def liquidity_policy(params, substep, state_history, previous_state):
         asset_volatility = get_asset_volatility(pool['assets'], timestep, params['event'], params['start_date'])
         price_dict = fetch_asset_prices(pool['assets'], timestep, params['event'], params['start_date'])
 
+        asset_prices = get_asset_prices(price_dict)
+        tvl = pool_total_holdings(pool, asset_prices)
+        for asset in pool['assets']:
+            pool['tvl'] = tvl
+            pool['pool_ratios'][asset] = pool['holdings'][asset] * asset_prices[asset][0] / tvl
+
         # print(pool['yield'])
 
         for liquidity_provider_id in liquidity_providers.keys():
-            if liquidity_provider_id == 'genesis':
-                continue
+
             liquidity_provider = liquidity_providers[liquidity_provider_id]
             asset_prices = get_asset_prices(price_dict)
+
+            # synch the provider liquidity with the pool holdings value based on their pool share
+            if liquidity_provider_id in pool['lps']:
+                provider_balance = get_provider_balance(liquidity_provider, asset_prices)
+                # print('prov bal', provider_balance)
+                updated_liquidity = {'BTC': 0, 'SOL': 0, 'ETH': 0, 'USDC': 0, 'USDT': 0}
+                for asset in pool['lps'][liquidity_provider_id].keys():
+                    liq_ratio = liquidity_provider['liquidity'][asset] * asset_prices[asset][0] / provider_balance
+                    # print('---------', pool['holdings'][asset], asset, liq_ratio)
+                    updated_liquidity[asset] = pool['holdings'][asset] * liq_ratio * liquidity_provider['pool_share'] / (pool['lp_shares'] * pool['pool_ratios'][asset])
+                    # print('+++++++++', pool['holdings'][asset], asset, updated_liquidity[asset], liquidity_provider['pool_share'] / pool['lp_shares'])
+
+                    pool['lps'][liquidity_provider_id][asset] = updated_liquidity[asset]
+
+                # print(updated_liquidity)
+                liquidity_provider['liquidity'] = updated_liquidity.copy()
+                # time.sleep(0.3)
+
+            if liquidity_provider_id == 'genesis':
+                continue
             # print("ass vol",asset_volatility)
             provider_decision = liquidity_provider_decision(liquidity_provider, pool['yield'], asset_prices, asset_volatility)
 
@@ -29,14 +55,13 @@ def liquidity_policy(params, substep, state_history, previous_state):
                 if provider_decision[asset] == 0:
                     continue
 
-                provder_open_pnl = (liquidity_provider['liquidity'][asset] / pool['holdings'][asset]) * (pool['open_pnl_long'][asset] + pool['open_pnl_short'][asset])
-
+                #provder_open_pnl = (liquidity_provider['liquidity'][asset] / pool['holdings'][asset]) * (pool['open_pnl_long'][asset] + pool['open_pnl_short'][asset])
                 if provider_decision[asset] < 0:
                     # check provider in the pool and change his decision to withdraw all liquidity (assumption that if someone wants out they withdraw all
                     provider_id = liquidity_provider['id']
                     if provider_id in pool['lps']:
                         if asset in pool['lps'][provider_id]:
-                            provider_decision[asset] = -1 * (pool['lps'][provider_id][asset] + provder_open_pnl)
+                            provider_decision[asset] = -1 * (pool['lps'][provider_id][asset]) #+ provder_open_pnl)
                         else:
                             continue
                     else:
@@ -55,7 +80,9 @@ def liquidity_policy(params, substep, state_history, previous_state):
                 if fee_amount / lot_size > 0.07:
                     continue
                 # update the provider and pool values
-                res_tmp = provide_liquidity(pool, liquidity_provider, gen_prov, lot_size, asset, provder_open_pnl, fee_amount, asset_prices)
+                #res_tmp = provide_liquidity(pool, liquidity_provider, gen_prov, lot_size, asset, provder_open_pnl, fee_amount, asset_prices)
+                res_tmp = provide_liquidity(pool, liquidity_provider, gen_prov, lot_size, asset, fee_amount, asset_prices)
+
                 if res_tmp == -1:
                     continue
                 liquidity_provider = res_tmp[1]

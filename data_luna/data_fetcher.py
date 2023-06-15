@@ -7,7 +7,7 @@ import os
 def fetch_data():
     tickers = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'USDC-USD', 'USDT-USD']
     for ticker in tickers:
-        df = yf.Ticker(ticker).history(start="2022-04-25", end="2022-06-20", interval="1h")
+        df = yf.Ticker(ticker).history(start="2022-04-25", end="2022-06-30", interval="1h")
 
         df.reset_index(inplace=True)
         df["Datetime"] = [str(val)[:-15] for val in df['Datetime']]
