@@ -115,12 +115,9 @@ def trading_policy(params, substep, state_history, previous_state):
         
         # calculate amount of lp tokens
         for provider_id in pool['lps'].keys():
-            for asset in pool['lps'][provider_id].keys():
-                # calculate number of lp shares
-                provider_share = total_provider_fees_collected[asset] * (liquidity_providers[provider_id]['liquidity'][asset] / pool['holdings'][asset])
-                if provider_id == 'genesis':
-                    provider_share = total_provider_fees_collected[asset] * ((liquidity_providers[provider_id]['liquidity'][asset] - total_provider_fees_collected[asset] * 0.3 / 0.7) / pool['holdings'][asset])
-
+            for asset in pool['lps'][provider_id].keys(): # pool_share
+                # calculate provider share
+                provider_share = total_provider_fees_collected[asset] * (liquidity_providers[provider_id]['pool_share'] / pool['lp_shares'])
                 # update provider
                 liquidity_providers[provider_id]['funds'][asset] += provider_share
 

@@ -127,6 +127,6 @@ def calculate_open_pnl(traders, asset_prices):
         for asset in traders[trader_id]['positions_long'].keys():
             open_pnl_long[asset] -= traders[trader_id]['positions_long'][asset]['quantity'] * (asset_prices[asset][0] - traders[trader_id]['positions_long'][asset]['entry_price'])
         for asset in traders[trader_id]['positions_short'].keys():
-            open_pnl_short[asset] -= traders[trader_id]['positions_short'][asset]['quantity'] * (asset_prices[asset][0] - traders[trader_id]['positions_short'][asset]['entry_price'])
+            open_pnl_short[asset] -= traders[trader_id]['positions_short'][asset]['quantity'] * (traders[trader_id]['positions_short'][asset]['entry_price'] - asset_prices[asset][0])
 
     return [open_pnl_long, open_pnl_short]

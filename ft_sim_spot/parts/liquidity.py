@@ -5,7 +5,6 @@ import copy
 def liquidity_policy(params, substep, state_history, previous_state):
     liquidity_providers = copy.deepcopy(previous_state['liquidity_providers'])
     pools = copy.deepcopy(previous_state['pools'])
-    fees_collected = []
     timestep = previous_state['timestep']
     print(timestep, 'liquidity')
 
@@ -14,7 +13,6 @@ def liquidity_policy(params, substep, state_history, previous_state):
         pool = pools[pool_id]
         gen_prov = copy.deepcopy(liquidity_providers['genesis'])
         asset_volatility = get_asset_volatility(pool['assets'], timestep, params['event'], params['start_date'])
-        fees_collected.append({ast: 0 for ast in pool['assets']})
         price_dict = fetch_asset_prices(pool['assets'], timestep, params['event'], params['start_date'])
 
         # print(pool['yield'])
@@ -65,7 +63,6 @@ def liquidity_policy(params, substep, state_history, previous_state):
                 pool = res_tmp[0]
                 # if timestep == 10:
                 #     pool['yield'] = {'BTC': 0.001, 'SOL': 0.001, 'ETH': 0.001, 'USDC': 0.001, 'USDT': 0.001}
-                fees_collected[p][asset] += fee_amount
             liquidity_providers[liquidity_provider_id] = liquidity_provider
         liquidity_providers['genesis'] = gen_prov
         pools[pool_id] = pool
@@ -74,7 +71,6 @@ def liquidity_policy(params, substep, state_history, previous_state):
     action = {
         'liquidity_providers': liquidity_providers,
         'pools': pools,
-        'fees_collected': fees_collected
     }
 
     return action
@@ -87,9 +83,4 @@ def liquidity_providers_update(params, substep, state_history, previous_state, p
 def pool_liquidity_update(params, substep, state_history, previous_state, policy):
     key = 'pools'
     value = policy['pools']
-    return (key, value)
-
-def treasury_liquidity_update(params, substep, state_history, previous_state, policy):
-    key = 'treasury'
-    value = {asset: previous_state['treasury'][asset] + sum([policy['fees_collected'][i][asset] for i in range(len(policy['fees_collected']))]) for asset in previous_state['treasury'].keys()}
     return (key, value)
