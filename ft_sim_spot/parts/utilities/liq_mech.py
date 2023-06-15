@@ -79,7 +79,7 @@ def provide_liquidity(pool, provider, gen_lp, lot_size, asset, fee, asset_prices
         if tmp_provider['funds'][asset] < lot_size + fee:
             return -1
         # calculate the amount of lp tokens allocated to provider v2
-        tvl = pool_tvl_max(tmp_pool['holdings'], asset_prices)
+        tvl = pool_tvl(tmp_pool['holdings'], asset_prices)
         adding_price = asset_prices[asset][0]
         pool_size_change_lot = lot_size * adding_price / tvl
         lp_tokens_lot = pool_size_change_lot * tmp_pool['lp_shares']
@@ -106,7 +106,7 @@ def provide_liquidity(pool, provider, gen_lp, lot_size, asset, fee, asset_prices
     
     elif lot_size < 0:
         # calculate the amount of lp tokens allocated to provider
-        tvl = pool_tvl_min(tmp_pool['holdings'], asset_prices)
+        tvl = pool_tvl(tmp_pool['holdings'], asset_prices)
         removing_price = asset_prices[asset][0]
         pool_size_change_lot = lot_size * removing_price / tvl
         lp_tokens_lot = pool_size_change_lot * tmp_pool['lp_shares']
@@ -131,68 +131,3 @@ def provide_liquidity(pool, provider, gen_lp, lot_size, asset, fee, asset_prices
             return -1   
     else:
         return -1
-
-
-
-# def provide_liquidity(pool, provider, gen_lp, lot_size, asset, provider_pnl, fee, asset_prices):
-#     tmp_pool = copy.deepcopy(pool)
-#     tmp_provider = copy.deepcopy(provider)
-#     tmp_gen = copy.deepcopy(gen_lp)
-
-#     if lot_size > 0:
-#         # check if provider has enough liquidity in funds
-#         if tmp_provider['funds'][asset] < lot_size + fee:
-#             return -1
-#         # calculate the amount of lp tokens allocated to provider v2
-#         tvl = pool_tvl_max(tmp_pool['holdings'], asset_prices)
-#         adding_price = asset_prices[asset][0]
-#         pool_size_change_lot = lot_size * adding_price / tvl
-#         lp_tokens_lot = pool_size_change_lot * tmp_pool['lp_shares']
-#         # update provider's liquidity
-#         tmp_provider['funds'][asset] -= (lot_size + fee)
-#         tmp_provider['liquidity'][asset] += lot_size
-#         tmp_provider['pool_share'] += lp_tokens_lot
-#         # update genesis provider's liquidity
-#         tmp_gen['funds'][asset] += fee
-#         # to holdings add the lot and collected fee v1
-#         tmp_pool['total_fees_collected'][asset] += fee
-#         tmp_pool['holdings'][asset] += lot_size
-#         tmp_pool['lp_shares'] += lp_tokens_lot
-
-#         if tmp_provider['id'] in tmp_pool['lps']:
-#             if asset in tmp_pool['lps'][tmp_provider['id']]:
-#                 tmp_pool['lps'][tmp_provider['id']][asset] += lot_size
-#             else:
-#                 tmp_pool['lps'][tmp_provider['id']][asset] = lot_size
-#         else:
-#             tmp_pool['lps'][tmp_provider['id']] = {asset: lot_size}
-#         # print(tmp_pool['lps']['genesis'])
-#         return [tmp_pool, tmp_provider, tmp_gen]
-    
-#     elif lot_size < 0:
-#         # calculate the amount of lp tokens allocated to provider
-#         tvl = pool_tvl_min(tmp_pool['holdings'], asset_prices)
-#         removing_price = asset_prices[asset][0]
-#         pool_size_change_lot = lot_size * removing_price / tvl
-#         lp_tokens_lot = pool_size_change_lot * tmp_pool['lp_shares']
-#         # check if provider has enough liquidity in funds
-#         if tmp_provider['id'] in tmp_pool['lps'] and asset in tmp_pool['lps'][tmp_provider['id']] and abs(lp_tokens_lot) <= tmp_provider['pool_share'] and abs(lot_size) + fee <= tmp_provider['liquidity'][asset]:
-#             # update provider's liquidity 
-#             tmp_provider['funds'][asset] += abs(lot_size) + provider_pnl - fee
-#             tmp_provider['pool_share'] -= abs(lp_tokens_lot)
-#             tmp_provider['liquidity'][asset] -= (abs(lot_size) - provider_pnl)
-#             # update genesis provider's liquidity
-#             tmp_gen['funds'][asset] += fee
-#             # update pool holdings, lps and lp shares
-#             tmp_pool['total_fees_collected'][asset] += fee
-#             tmp_pool['holdings'][asset] += (lot_size - provider_pnl)
-#             if asset == 'SOL':
-#                 print(f"removing {lot_size} with pnl {provider_pnl}")
-#             tmp_pool['lp_shares'] -= lp_tokens_lot
-#             tmp_pool['lps'][tmp_provider['id']][asset] += lot_size
-
-#             return [tmp_pool, tmp_provider, tmp_gen]
-#         else:
-#             return -1   
-#     else:
-#         return -1
