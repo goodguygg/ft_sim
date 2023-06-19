@@ -30,7 +30,7 @@ def trading_policy(params, substep, state_history, previous_state):
                 if asset == 'USDT' or asset == 'USDC':
                     continue
 
-                trade_decision = trading_decision(trader, timestep, asset, asset_prices[asset], params['max_margin'], params['liquidation_threshold'], pool, params['rate_params'], params['trade_chance'])
+                trade_decision = trading_decision(trader, timestep, asset, asset_prices[asset], params['max_margin'][asset], params['liquidation_threshold'][asset], pool, params['rate_params'], params['trade_chance'])
 
                 if trade_decision['long'] == None and trade_decision['short'] == None:
                     # print('no trade')
