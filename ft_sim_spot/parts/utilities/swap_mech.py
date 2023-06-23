@@ -107,7 +107,7 @@ def swap_tokens_pool(pool, token_in, token_in_amt, token_out, token_out_amt, swa
     post_ratio_in = pool['holdings'][token_in] * asset_prices[token_in][0] / tvl
     post_ratio_out = pool['holdings'][token_out] * asset_prices[token_out][0] / tvl
 
-    if pool['target_ratios'][token_in] - pool['deviation'] < post_ratio_in < pool['target_ratios'][token_out] + pool['deviation'] and pool['target_ratios'][token_in] - pool['deviation'] < post_ratio_out < pool['target_ratios'][token_out] + pool['deviation']:
+    if pool['target_ratios'][token_in] - pool['deviation'] < post_ratio_in < pool['target_ratios'][token_in] + pool['deviation'] and pool['target_ratios'][token_out] - pool['deviation'] < post_ratio_out < pool['target_ratios'][token_out] + pool['deviation']:
         return pool
     else:
         return -1

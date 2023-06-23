@@ -37,10 +37,10 @@ def trading_fee(pool, asset, trade_decision, rate_params, max_payoff_mult):
         if trade_decision['short']['direction'] == 'open':
             new_utilization = pool['oi_short'][asset] + (trade_decision['short']['quantity'] * max_payoff_mult)
             if new_utilization < optimal_utilization:
-                long_fee = pool['fees']['open'] * trade_decision['short']['quantity']
+                short_fee = pool['fees']['open'] * trade_decision['short']['quantity']
             else:
                 utilization_fee = (1 + pool['utilization_mult'][asset] * (new_utilization - optimal_utilization) / (1 - optimal_utilization))/100
-                long_fee = pool['fees']['open'] * utilization_fee * trade_decision['short']['quantity']
+                short_fee = pool['fees']['open'] * utilization_fee * trade_decision['short']['quantity']
         # Handle close
         elif trade_decision['short']['direction'] == 'close':
             short_fee = pool['fees']['close'] * trade_decision['short']['quantity']

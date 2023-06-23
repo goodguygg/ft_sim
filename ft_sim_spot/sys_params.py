@@ -25,3 +25,10 @@ sys_params = {
     'event': ['FTX'],
     'start_date': ['2022-11-01']
 }
+
+
+"""
+Issue with oi, oi for shorts should be in stable coins
+Adding liquidity fee is same as swap fee mechanism
+Add conditional price feeds
+"""
