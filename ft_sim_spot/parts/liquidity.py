@@ -71,7 +71,7 @@ def liquidity_policy(params, substep, state_history, previous_state):
                 lot_size = provider_decision[asset]
 
                 # Fetch the fee amount
-                fee_perc = liquidity_fee(pool, asset, provider_decision, asset_prices, params['base_fee'], params['ratio_mult'])
+                fee_perc = liquidity_fee(pool, asset, provider_decision, asset_prices, params['base_fees_swap'], params['om_fees_swap'])
                 # fee amount returns -1 if the provider decision if does not pass the constraints
                 if fee_perc == -1:
                     continue

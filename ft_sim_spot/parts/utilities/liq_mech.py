@@ -34,40 +34,81 @@ def liquidity_provider_decision(liquidity_provider, pool_yield, asset_prices, as
     
     return decision
 
-def liquidity_fee(pool_init, asset, provider_decision, asset_prices, base_fee, ratio_mult):
+# def liquidity_fee(pool_init, asset, provider_decision, asset_prices, base_fee, ratio_mult):
+#     pool = copy.deepcopy(pool_init)
+#     # if token ratio is improved:           
+#     #     fee = base_fee / ratio_fee
+#     # otherwise:         
+#     #     fee = base_fee * ratio_fee
+#     # where:          
+#     # if new_ratio < ratios.target:
+#     #         ratio_fee = 1 + custody.fees.ratio_mult * (ratios.target - new_ratio) / (ratios.target - ratios.min);          
+#     # otherwise:
+#     #     ratio_fee = 1 + custody.fees.ratio_mult * (new_ratio - ratios.target) / (ratios.max - ratios.target);
+
+#     target_ratio = pool['target_ratios'][asset]
+#     tvl = pool_total_holdings(pool, asset_prices)
+#     current_ratio = (pool['holdings'][asset] * float(asset_prices[asset][0])) / tvl
+
+#     new_holding = pool['holdings'][asset] + provider_decision[asset]
+#     new_tvl = tvl + provider_decision[asset] * float(asset_prices[asset][0])
+#     new_ratio = new_holding * float(asset_prices[asset][0]) / new_tvl
+
+#     if new_ratio - target_ratio > pool['deviation']:
+#         return -1
+
+#     if (new_ratio - current_ratio) < (target_ratio - current_ratio):
+#         ratio_fee = base_fee / ratio_mult
+#     else:
+#         if new_ratio < target_ratio:
+#             ratio_fee = (1 + ratio_mult * (target_ratio - new_ratio) / (pool['deviation']))/100
+#         else:
+#             ratio_fee = (1 + ratio_mult * (new_ratio - target_ratio) / (pool['deviation']))/100
+
+#         #ratio_fee = base_fee * ratio_fee
+
+#     return ratio_fee
+
+def liquidity_fee(pool_init, asset, provider_decision, asset_prices, base_fees, om_fees):
+    '''
+    final fee = pool receiving swap fee + pool paying swap fee + pool receiving base fee + pool paying base fee
+
+    base fees:
+    btc: 0.00025
+    eth: 0.00025
+    sol: 0.00015
+    usdc/usdt: 0.0001
+
+    for pool receiving tokens (allocation % up)
+
+    fee = A * (post trade ratio * 100 - target ratio * 100)^3 + fee optimal
+    where A = (fee max - fee optional) / (max ratio * 100 - target ratio * 100) ^ 3
+
+    for pool paying tokens (allocation % down)
+
+    fee = A * (post trade ratio * 100 - target ratio * 100)^3 + fee optimal
+    where A = (fee max - fee optional) / (min ratio * 100 - target ratio * 100) ^ 3
+    
+    '''
     pool = copy.deepcopy(pool_init)
-    # if token ratio is improved:           
-    #     fee = base_fee / ratio_fee
-    # otherwise:         
-    #     fee = base_fee * ratio_fee
-    # where:          
-    # if new_ratio < ratios.target:
-    #         ratio_fee = 1 + custody.fees.ratio_mult * (ratios.target - new_ratio) / (ratios.target - ratios.min);          
-    # otherwise:
-    #     ratio_fee = 1 + custody.fees.ratio_mult * (new_ratio - ratios.target) / (ratios.max - ratios.target);
+    # return ratio_fee
+    tvl = pool_total_holdings(pool, asset_prices)
+    fee_max = om_fees[0]
+    fee_optimal = om_fees[1]
+    amount = provider_decision[asset]
 
     target_ratio = pool['target_ratios'][asset]
-    tvl = pool_total_holdings(pool, asset_prices)
-    current_ratio = (pool['holdings'][asset] * float(asset_prices[asset][0])) / tvl
+    post_lp_ratio = (pool['holdings'][asset] + amount) * float(asset_prices[asset][0]) / tvl
+    max_ratio = target_ratio + pool['deviation'] if amount > 0 else target_ratio - pool['deviation']
 
-    new_holding = pool['holdings'][asset] + provider_decision[asset]
-    new_tvl = tvl + provider_decision[asset] * float(asset_prices[asset][0])
-    new_ratio = new_holding * float(asset_prices[asset][0]) / new_tvl
+    # Calculate the pool receiving swap fee
+    A = (fee_max - fee_optimal) / (max_ratio * 100 - target_ratio * 100) ** 3
+    lp_fee = A * (post_lp_ratio * 100 - target_ratio * 100) ** 3 + fee_optimal
 
-    if new_ratio - target_ratio > pool['deviation']:
-        return -1
+    # Get the pool receiving base fee and the pool paying base fee
+    tot_fee = base_fees[asset] + lp_fee
 
-    if (new_ratio - current_ratio) < (target_ratio - current_ratio):
-        ratio_fee = base_fee / ratio_mult
-    else:
-        if new_ratio < target_ratio:
-            ratio_fee = (1 + ratio_mult * (target_ratio - new_ratio) / (pool['deviation']))/100
-        else:
-            ratio_fee = (1 + ratio_mult * (new_ratio - target_ratio) / (pool['deviation']))/100
-
-        #ratio_fee = base_fee * ratio_fee
-
-    return ratio_fee
+    return tot_fee
 
 def provide_liquidity(pool, provider, gen_lp, lot_size, asset, fee, asset_prices):
     tmp_pool = copy.deepcopy(pool)
