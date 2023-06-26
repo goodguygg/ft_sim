@@ -1,8 +1,8 @@
 
 
 initial_conditions = {
-    'genesis_traders': 100,
-    'genesis_providers': 30,
+    'genesis_traders': 10,
+    'genesis_providers': 2,
     'num_of_hrs': 311,
     'initial_liquidity': {'BTC': 1, 'ETH': 13, 'SOL': 625, 'USDC': 20000, 'USDT': 20000},
     'pool_fees': {'open': 0.01, 'close': 0.01}

@@ -85,7 +85,8 @@ def close_short(trader, timestep, asset, asset_price, liquidated, pool, rate_par
         'PnL': pnl,
         'liquidation': liquidated,
         'denomination': trader[f'positions_short'][asset]['collateral']['denomination'], # {token: {quantity: 0, entry_price: 0, collateral: {amount: 0, denomination: "USDC"}, timestep: 0}}
-        'direction': 'close'
+        'direction': 'close',
+        'asset_price': asset_price
     }
     # print("short", payout, trader['liquidity'][asset], trader[f'positions_short'][asset]['collateral']['amount'], interest, pnl)
     return decision
@@ -145,7 +146,8 @@ def trading_decision(trader_passed, timestep, asset, asset_pricing, max_margin, 
                 'PnL': pnl,
                 'liquidation': True,
                 'denomination': trader[f'positions_short'][asset]['collateral']['denomination'], # {token: {quantity: 0, entry_price: 0, collateral: {amount: 0, denomination: "USDC"}, timestep: 0}}
-                'direction': 'close'
+                'direction': 'close',
+                'asset_price': cs_price
             }
 
     trade_action = random.random() # 1/4 enter a long, 1/4 enter a short, 1/2 do nothing. if position was closed then pass
@@ -325,13 +327,15 @@ def update_pool_open_short(pool, trader, asset, trade_decision, fees):
     updated_pool = copy.deepcopy(pool)
 
     # Check if the pool has enough space for the trade
-    available_asset = updated_pool['holdings'][asset] - (updated_pool['oi_long'][asset] + updated_pool['oi_short'][asset])
+    #available_asset = updated_pool['holdings'][asset] - (updated_pool['oi_long'][asset] + updated_pool['oi_short'][asset])
+    available_asset = updated_pool['holdings'][trade_decision['short']['denomination']] - updated_pool['short_interest'][trade_decision['short']['denomination']]
 
     if available_asset < trade_decision['short']['quantity']:
         return -1
     
     # Increase the open interest
     updated_pool['oi_short'][asset] += trade_decision['short']['quantity']
+    updated_pool['short_interest'][trade_decision['short']['denomination']] += trade_decision['short']['quantity'] * trade_decision['short']['asset_price']
     updated_pool['volume'][asset] += trade_decision['short']['quantity']
     updated_pool['total_fees_collected'][trade_decision['short']['denomination']] += fees[1] + trade_decision['short']['interest_paid']
 
@@ -403,6 +407,7 @@ def update_pool_close_short(pool, trader, asset, trade_decision, fees):
 
     # Decrease the open interest
     updated_pool['oi_short'][asset] -= trade_decision['short']['quantity']
+    updated_pool['short_interest'][trade_decision['short']['denomination']] -= trade_decision['short']['quantity'] * trade_decision['short']['asset_price']
     updated_pool['volume'][asset] += trade_decision['short']['quantity']
     updated_pool['total_fees_collected'][trade_decision['short']['denomination']] += fees[1] + trade_decision['short']['interest_paid']
     updated_pool['holdings'][trade_decision['short']['denomination']] -= trade_decision['short']['PnL']

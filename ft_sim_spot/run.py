@@ -139,6 +139,9 @@ def postprocessing(df):
             'lp_bal_sol': sum(lp['liquidity']['SOL'] for lp in liquidity_providers.values()) - liquidity_providers['genesis']['liquidity']['SOL'],
             'lp_bal_usdc': sum(lp['liquidity']['USDC'] for lp in liquidity_providers.values()) - liquidity_providers['genesis']['liquidity']['USDC'],
             'lp_bal_usdt': sum(lp['liquidity']['USDT'] for lp in liquidity_providers.values()) - liquidity_providers['genesis']['liquidity']['USDT'],
+            'short_interest_usdc': pools[0]['short_interest']['USDC'],
+            'short_interest_usdt': pools[0]['short_interest']['USDT'],
+            'short_interest_tot': pools[0]['short_interest']['USDC'] + pools[0]['short_interest']['USDT'],
         }
         
         # Append the timestep data to the list

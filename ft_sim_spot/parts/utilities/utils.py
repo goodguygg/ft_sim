@@ -481,6 +481,48 @@ def to_xslx(df, name):
     s.graphicalProperties.solidFill = "FF0000"
     oi_sheet.add_chart(chart, "S37")
 
+    oi_sheet['A52'] = "Short interest USDC"
+    timestamps = df.shape[0]
+    values = Reference(sheet, min_col=53, min_row=3, max_col=53, max_row=timestamps)
+    chart = LineChart()
+    chart.add_data(values)
+    chart.title = "short_interest_usdc"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "USDC"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
+    oi_sheet.add_chart(chart, "A54")
+
+    oi_sheet['J52'] = "Short interest USDT"
+    timestamps = df.shape[0]
+    values = Reference(sheet, min_col=54, min_row=3, max_col=54, max_row=timestamps)
+    chart = LineChart()
+    chart.add_data(values)
+    chart.title = "short_interest_usdt"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "USDT"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
+    oi_sheet.add_chart(chart, "J54")
+
+    oi_sheet['S52'] = "Short interest total"
+    timestamps = df.shape[0]
+    values = Reference(sheet, min_col=55, min_row=3, max_col=55, max_row=timestamps)
+    chart = LineChart()
+    chart.add_data(values)
+    chart.title = "short_interest_tot"
+    chart.x_axis.title = "Hr"
+    chart.y_axis.title = "USD"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
+    oi_sheet.add_chart(chart, "S54")
+
     # Create a volume sheet
     volume_sheet = wb.create_sheet(title="Volume charts")
 
