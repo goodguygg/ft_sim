@@ -330,7 +330,7 @@ def update_pool_open_short(pool, trader, asset, trade_decision, fees):
     #available_asset = updated_pool['holdings'][asset] - (updated_pool['oi_long'][asset] + updated_pool['oi_short'][asset])
     available_asset = updated_pool['holdings'][trade_decision['short']['denomination']] - updated_pool['short_interest'][trade_decision['short']['denomination']]
 
-    if available_asset < trade_decision['short']['quantity']:
+    if available_asset < trade_decision['short']['quantity'] * trade_decision['short']['asset_price']:
         return -1
     
     # Increase the open interest

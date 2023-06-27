@@ -31,7 +31,6 @@ def liquidity_provider_decision(liquidity_provider, pool_yield, asset_prices, as
             decision[asset] -= liquidity_to_remove
             #print(f"attempt to remove {liquidity_to_remove} {asset}")
 
-    
     return decision
 
 # def liquidity_fee(pool_init, asset, provider_decision, asset_prices, base_fee, ratio_mult):
@@ -114,6 +113,9 @@ def provide_liquidity(pool, provider, gen_lp, lot_size, asset, fee, asset_prices
     tmp_pool = copy.deepcopy(pool)
     tmp_provider = copy.deepcopy(provider)
     tmp_gen = copy.deepcopy(gen_lp)
+
+    if check_for_avail(pool, asset, abs(lot_size)) == -1:
+        return -1
 
     if lot_size > 0:
         # check if provider has enough liquidity in funds
