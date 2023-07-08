@@ -89,21 +89,6 @@ def swap_tokens_trader(trader_passed, token_in, token_in_amt, token_out, token_o
 
     return trader
 
-def check_for_avail(pool, token, amount):
-    pool = copy.deepcopy(pool)
-
-    if token in ['BTC', 'ETH', 'SOL']:
-        avail_asset = pool['holdings'][token] - pool['oi_long'][token]
-    elif token in ['USDC', 'USDT']:
-        avail_asset = pool['holdings'][token] - pool['short_interest'][token]
-
-    if avail_asset < amount:
-        return -1
-    
-    return 0
-
-
-# def trading_fee(pool, asset, trade_decision, rate_params, max_payoff_mult):
 def swap_tokens_pool(pool, token_in, token_in_amt, token_out, token_out_amt, swap_fee, asset_prices):
 
     pool = copy.deepcopy(pool)

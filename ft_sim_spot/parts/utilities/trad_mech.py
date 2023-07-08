@@ -302,7 +302,7 @@ def update_pool_open_long(pool, trader, asset, trade_decision, fees):
     updated_pool = copy.deepcopy(pool)
 
     # Check if the pool has enough space for the trade
-    available_asset = updated_pool['holdings'][asset] - (updated_pool['oi_long'][asset] + updated_pool['oi_short'][asset])
+    available_asset = updated_pool['holdings'][asset] - updated_pool['oi_long'][asset]# + updated_pool['oi_short'][asset])
 
     if available_asset < trade_decision['long']['quantity']:
         return -1

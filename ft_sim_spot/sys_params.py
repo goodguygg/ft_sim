@@ -28,7 +28,10 @@ sys_params = {
 
 
 """
-Issue with oi, oi for shorts should be in stable coins
-Adding liquidity fee is same as swap fee mechanism
-Add conditional price feeds
+if problem - deny open position, swap and add liquidity, allow close or remove liquidity
+if use_spread true - use max for opening long, closing short, swap token out, liquidating shorts
+----- min for opening shorts, closing longs, swap token in, liquidating longs
+add/remove liquidity wait for note
+
+create an additional tracer for pnl with contract logic through cummulative positions
 """

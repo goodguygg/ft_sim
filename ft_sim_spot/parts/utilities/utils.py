@@ -109,7 +109,7 @@ def calculate_interest(position_size, duration, asset, pool, rate_params):
     slope2 = rate_params[2]
 
     total_holdings = pool['holdings'][asset]
-    total_borrowed = pool['oi_long'][asset] + pool['oi_short'][asset]
+    total_borrowed = pool['oi_long'][asset]# + pool['oi_short'][asset]
 
     # Handle division by zero
     if total_holdings == 0:
