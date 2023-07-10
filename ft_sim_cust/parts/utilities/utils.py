@@ -196,7 +196,7 @@ def to_xslx(df, name):
     chart = AreaChart()
     chart.add_data(values)
     chart.title = "number_of_liquidity_providers"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "LPs"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -209,7 +209,7 @@ def to_xslx(df, name):
     chart = BarChart()
     chart.add_data(values)
     chart.title = "number_of_traders"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "Trads"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -223,7 +223,7 @@ def to_xslx(df, name):
     chart = BarChart()
     chart.add_data(values)
     chart.title = "pool_lp_tokens"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "Lp tokens"
     trac_sheet.add_chart(chart, "A20")
 
@@ -235,7 +235,7 @@ def to_xslx(df, name):
     chart = AreaChart()
     chart.add_data(values)
     chart.title = "pool_balance_btc"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "BTC"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -248,7 +248,7 @@ def to_xslx(df, name):
     chart = AreaChart()
     chart.add_data(values)
     chart.title = "pool_balance_eth"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "ETH"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -261,7 +261,7 @@ def to_xslx(df, name):
     chart = AreaChart()
     chart.add_data(values)
     chart.title = "pool_balance_sol"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "SOL"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -274,7 +274,7 @@ def to_xslx(df, name):
     chart = AreaChart()
     chart.add_data(values)
     chart.title = "pool_balance_usdc"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "USDC"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -287,7 +287,7 @@ def to_xslx(df, name):
     chart = AreaChart()
     chart.add_data(values)
     chart.title = "pool_balance_usdt"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "USDT"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -303,7 +303,7 @@ def to_xslx(df, name):
     chart = LineChart()
     chart.add_data(values)
     chart.title = "cum_pnl_traders"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "USD"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -316,7 +316,7 @@ def to_xslx(df, name):
     chart = BarChart()
     chart.add_data(values)
     chart.title = "max_pnl_traders"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "USD"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -329,7 +329,7 @@ def to_xslx(df, name):
     chart = BarChart()
     chart.add_data(values)
     chart.title = "min_pnl_traders"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "USD"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -342,7 +342,7 @@ def to_xslx(df, name):
     chart = LineChart()
     chart.add_data(values)
     chart.title = "pool_pnl_btc"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "USD"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -355,7 +355,7 @@ def to_xslx(df, name):
     chart = LineChart()
     chart.add_data(values)
     chart.title = "pool_pnl_eth"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "USD"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -369,7 +369,7 @@ def to_xslx(df, name):
     chart = LineChart()
     chart.add_data(values)
     chart.title = "pool_pnl_sol"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "USD"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -385,7 +385,7 @@ def to_xslx(df, name):
     chart = LineChart()
     chart.add_data(values)
     chart.title = "oi_long_btc"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "BTC"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -398,7 +398,7 @@ def to_xslx(df, name):
     chart = LineChart()
     chart.add_data(values)
     chart.title = "oi_long_eth"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "ETH"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -411,7 +411,7 @@ def to_xslx(df, name):
     chart = LineChart()
     chart.add_data(values)
     chart.title = "oi_long_sol"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "SOL"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -424,7 +424,7 @@ def to_xslx(df, name):
     chart = LineChart()
     chart.add_data(values)
     chart.title = "oi_short_btc"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "BTC"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -437,7 +437,7 @@ def to_xslx(df, name):
     chart = LineChart()
     chart.add_data(values)
     chart.title = "oi_short_eth"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "ETH"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -451,7 +451,7 @@ def to_xslx(df, name):
     chart = LineChart()
     chart.add_data(values)
     chart.title = "oi_short_sol"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "SOL"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -465,7 +465,7 @@ def to_xslx(df, name):
     chart = LineChart()
     chart.add_data(values)
     chart.title = "nominal_exposure_btc"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "BTC"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -479,7 +479,7 @@ def to_xslx(df, name):
     chart = LineChart()
     chart.add_data(values)
     chart.title = "nominal_exposure_eth"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "ETH"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -493,7 +493,7 @@ def to_xslx(df, name):
     chart = LineChart()
     chart.add_data(values)
     chart.title = "nominal_exposure_sol"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "SOL"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -507,7 +507,7 @@ def to_xslx(df, name):
     chart = LineChart()
     chart.add_data(values)
     chart.title = "short_interest_usdc"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "USDC"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -521,7 +521,7 @@ def to_xslx(df, name):
     chart = LineChart()
     chart.add_data(values)
     chart.title = "short_interest_usdt"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "USDT"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -535,7 +535,7 @@ def to_xslx(df, name):
     chart = LineChart()
     chart.add_data(values)
     chart.title = "short_interest_tot"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "USD"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -551,7 +551,7 @@ def to_xslx(df, name):
     chart = AreaChart()
     chart.add_data(values)
     chart.title = "volume_btc"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "BTC"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -564,7 +564,7 @@ def to_xslx(df, name):
     chart = AreaChart()
     chart.add_data(values)
     chart.title = "volume_eth"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "ETH"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -577,7 +577,7 @@ def to_xslx(df, name):
     chart = AreaChart()
     chart.add_data(values)
     chart.title = "volume_sol"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "SOL"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -590,7 +590,7 @@ def to_xslx(df, name):
     chart = BarChart()
     chart.add_data(values)
     chart.title = "num_of_longs"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "Amt"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -603,7 +603,7 @@ def to_xslx(df, name):
     chart = BarChart()
     chart.add_data(values)
     chart.title = "num_of_shorts"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "Amt"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -617,7 +617,7 @@ def to_xslx(df, name):
     chart = BarChart()
     chart.add_data(values)
     chart.title = "num_of_swaps"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "Amt"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -631,7 +631,7 @@ def to_xslx(df, name):
     chart = BarChart()
     chart.add_data(values)
     chart.title = "number_of_liquidations"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "Amt"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -647,7 +647,7 @@ def to_xslx(df, name):
     chart = AreaChart()
     chart.add_data(values)
     chart.title = "fees_collected_btc"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "BTC"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -660,7 +660,7 @@ def to_xslx(df, name):
     chart = AreaChart()
     chart.add_data(values)
     chart.title = "fees_collected_eth"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "ETH"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -673,7 +673,7 @@ def to_xslx(df, name):
     chart = AreaChart()
     chart.add_data(values)
     chart.title = "fees_collected_sol"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "SOL"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -686,7 +686,7 @@ def to_xslx(df, name):
     chart = AreaChart()
     chart.add_data(values)
     chart.title = "fees_collected_usdc"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "USDC"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -699,7 +699,7 @@ def to_xslx(df, name):
     chart = AreaChart()
     chart.add_data(values)
     chart.title = "fees_collected_usdt"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "USDT"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -713,7 +713,7 @@ def to_xslx(df, name):
     chart = AreaChart()
     chart.add_data(values)
     chart.title = "treasury_balance_btc"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "BTC"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -727,7 +727,7 @@ def to_xslx(df, name):
     chart = AreaChart()
     chart.add_data(values)
     chart.title = "treasury_balance_eth"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "ETH"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -741,7 +741,7 @@ def to_xslx(df, name):
     chart = AreaChart()
     chart.add_data(values)
     chart.title = "treasury_balance_sol"
-    chart.x_axis.title = "Day"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "SOL"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -755,7 +755,7 @@ def to_xslx(df, name):
     chart = AreaChart()
     chart.add_data(values)
     chart.title = "treasury_balance_usdc"
-    chart.x_axis.title = "Day"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "USDC"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -769,7 +769,7 @@ def to_xslx(df, name):
     chart = AreaChart()
     chart.add_data(values)
     chart.title = "treasury_balance_usdt"
-    chart.x_axis.title = "Day"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "USDT"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -785,7 +785,7 @@ def to_xslx(df, name):
     chart = AreaChart()
     chart.add_data(values)
     chart.title = "TVL"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "USD"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -798,7 +798,7 @@ def to_xslx(df, name):
     chart = LineChart()
     chart.add_data(values)
     chart.title = "pool_perc_btc"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "BTC"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -811,7 +811,7 @@ def to_xslx(df, name):
     chart = LineChart()
     chart.add_data(values)
     chart.title = "pool_perc_eth"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "ETH"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -824,7 +824,7 @@ def to_xslx(df, name):
     chart = LineChart()
     chart.add_data(values)
     chart.title = "pool_perc_sol"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "SOL"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -837,7 +837,7 @@ def to_xslx(df, name):
     chart = LineChart()
     chart.add_data(values)
     chart.title = "pool_perc_usdc"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "USDC"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -851,7 +851,7 @@ def to_xslx(df, name):
     chart = LineChart()
     chart.add_data(values)
     chart.title = "pool_perc_usdt"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "USDT"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -867,7 +867,7 @@ def to_xslx(df, name):
     chart = BarChart()
     chart.add_data(values)
     chart.title = "lp_bal_btc"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "BTC"
     # Change bar filling and line color 
     s = chart.series[0]
@@ -880,7 +880,7 @@ def to_xslx(df, name):
     chart = BarChart()
     chart.add_data(values)
     chart.title = "lp_bal_eth"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "ETH"
     # Change bar filling and line color
     s = chart.series[0]
@@ -893,7 +893,7 @@ def to_xslx(df, name):
     chart = BarChart()
     chart.add_data(values)
     chart.title = "lp_bal_sol"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "SOL"
     # Change bar filling and line color
     s = chart.series[0]
@@ -906,7 +906,7 @@ def to_xslx(df, name):
     chart = BarChart()
     chart.add_data(values)
     chart.title = "lp_bal_usdc"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "USDC"
     # Change bar filling and line color
     s = chart.series[0]
@@ -919,7 +919,7 @@ def to_xslx(df, name):
     chart = BarChart()
     chart.add_data(values)
     chart.title = "lp_bal_usdt"
-    chart.x_axis.title = "Hr"
+    chart.x_axis.title = "Min"
     chart.y_axis.title = "USDT"
     # Change bar filling and line color
     s = chart.series[0]
@@ -927,4 +927,250 @@ def to_xslx(df, name):
     s.graphicalProperties.solidFill = "00FF00"
     fees_sheet.add_chart(chart, "J21")
 
+    # Create a contract oi sheet
+    contract_oi_sheet = wb.create_sheet(title="Contract oi charts")
+
+    contract_oi_sheet['A1'] = "Contract OI BTC long"
+    values = Reference(sheet, min_col=56, min_row=3, max_col=56, max_row=timestamps)
+    chart = BarChart()
+    chart.add_data(values)
+    chart.title = "contract_oi_btc_long"
+    chart.x_axis.title = "Min"
+    chart.y_axis.title = "BTC"
+    # Change bar filling and line color
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "00FF00"
+    s.graphicalProperties.solidFill = "00FF00"
+    contract_oi_sheet.add_chart(chart, "A3")
+
+    contract_oi_sheet['J1'] = "Contract OI ETH long"
+    values = Reference(sheet, min_col=58, min_row=3, max_col=58, max_row=timestamps)
+    chart = BarChart()
+    chart.add_data(values)
+    chart.title = "contract_oi_eth_long"
+    chart.x_axis.title = "Min"
+    chart.y_axis.title = "ETH"
+    # Change bar filling and line color
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "00FF00"
+    s.graphicalProperties.solidFill = "00FF00"
+    contract_oi_sheet.add_chart(chart, "J3")
+
+    contract_oi_sheet['S1'] = "Contract OI SOL long"
+    values = Reference(sheet, min_col=60, min_row=3, max_col=60, max_row=timestamps)
+    chart = BarChart()
+    chart.add_data(values)
+    chart.title = "contract_oi_sol_long"
+    chart.x_axis.title = "Min"
+    chart.y_axis.title = "SOL"
+    # Change bar filling and line color
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "00FF00"
+    s.graphicalProperties.solidFill = "00FF00"
+    contract_oi_sheet.add_chart(chart, "S3")
+
+    contract_oi_sheet['A18'] = "Contract OI BTC short"
+    values = Reference(sheet, min_col=57, min_row=3, max_col=57, max_row=timestamps)
+    chart = BarChart()
+    chart.add_data(values)
+    chart.title = "contract_oi_btc_short"
+    chart.x_axis.title = "Min"
+    chart.y_axis.title = "BTC"
+    # Change bar filling and line color
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
+    contract_oi_sheet.add_chart(chart, "A20")
+
+    contract_oi_sheet['J18'] = "Contract OI ETH short"
+    values = Reference(sheet, min_col=59, min_row=3, max_col=59, max_row=timestamps)
+    chart = BarChart()
+    chart.add_data(values)
+    chart.title = "contract_oi_eth_short"
+    chart.x_axis.title = "Min"
+    chart.y_axis.title = "ETH"
+    # Change bar filling and line color
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
+    contract_oi_sheet.add_chart(chart, "J20")
+
+    contract_oi_sheet['S18'] = "Contract OI SOL short"
+    values = Reference(sheet, min_col=61, min_row=3, max_col=61, max_row=timestamps)
+    chart = BarChart()
+    chart.add_data(values)
+    chart.title = "contract_oi_sol_short"
+    chart.x_axis.title = "Min"
+    chart.y_axis.title = "SOL"
+    # Change bar filling and line color
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
+    contract_oi_sheet.add_chart(chart, "S20")
+
+    contract_oi_sheet['A35'] = "Contract OI BTC collateral"
+    timestamps = df.shape[0]
+    values = Reference(sheet, min_col=68, min_row=3, max_col=68, max_row=timestamps)
+    chart = BarChart()
+    chart.add_data(values)
+    chart.title = "contract_oi_btc_collateral"
+    chart.x_axis.title = "Min"
+    chart.y_axis.title = "BTC"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "00FF00"
+    s.graphicalProperties.solidFill = "00FF00"
+    contract_oi_sheet.add_chart(chart, "A37")
+
+    contract_oi_sheet['J35'] = "Contract OI ETH collateral"
+    timestamps = df.shape[0]
+    values = Reference(sheet, min_col=69, min_row=3, max_col=69, max_row=timestamps)
+    chart = BarChart()
+    chart.add_data(values)
+    chart.title = "contract_oi_eth_collateral"
+    chart.x_axis.title = "Min"
+    chart.y_axis.title = "ETH"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "00FF00"
+    s.graphicalProperties.solidFill = "00FF00"
+    contract_oi_sheet.add_chart(chart, "J37")
+
+    contract_oi_sheet['S35'] = "Contract OI SOL collateral"
+    timestamps = df.shape[0]
+    values = Reference(sheet, min_col=70, min_row=3, max_col=70, max_row=timestamps)
+    chart = BarChart()
+    chart.add_data(values)
+    chart.title = "contract_oi_sol_collateral"
+    chart.x_axis.title = "Min"
+    chart.y_axis.title = "SOL"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "00FF00"
+    s.graphicalProperties.solidFill = "00FF00"
+    contract_oi_sheet.add_chart(chart, "S37")
+
+    # Create a contract oi price sheet
+    contract_oi_price_sheet = wb.create_sheet(title="Contract oi price charts")
+
+    contract_oi_price_sheet['A1'] = "Contract OI BTC long avg price"
+    values = Reference(sheet, min_col=62, min_row=3, max_col=62, max_row=timestamps)
+    chart = LineChart()
+    chart.add_data(values)
+    chart.title = "contract_oi_btc_avg_price_long"
+    chart.x_axis.title = "Min"
+    chart.y_axis.title = "USD"
+    # Change bar filling and line color
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "00FF00"
+    s.graphicalProperties.solidFill = "00FF00"
+    contract_oi_price_sheet.add_chart(chart, "A3")
+
+    contract_oi_price_sheet['J1'] = "Contract OI ETH long avg price"
+    values = Reference(sheet, min_col=64, min_row=3, max_col=64, max_row=timestamps)
+    chart = LineChart()
+    chart.add_data(values)
+    chart.title = "contract_oi_eth_avg_price_long"
+    chart.x_axis.title = "Min"
+    chart.y_axis.title = "USD"
+    # Change bar filling and line color
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "00FF00"
+    s.graphicalProperties.solidFill = "00FF00"
+    contract_oi_price_sheet.add_chart(chart, "J3")
+
+    contract_oi_price_sheet['S1'] = "Contract OI SOL long avg price"
+    values = Reference(sheet, min_col=66, min_row=3, max_col=66, max_row=timestamps)
+    chart = LineChart()
+    chart.add_data(values)
+    chart.title = "contract_oi_sol_avg_price_long"
+    chart.x_axis.title = "Min"
+    chart.y_axis.title = "USD"
+    # Change bar filling and line color
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "00FF00"
+    s.graphicalProperties.solidFill = "00FF00"
+    contract_oi_price_sheet.add_chart(chart, "S3")
+
+    contract_oi_price_sheet['A18'] = "Contract OI BTC short avg price"
+    values = Reference(sheet, min_col=63, min_row=3, max_col=63, max_row=timestamps)
+    chart = LineChart()
+    chart.add_data(values)
+    chart.title = "contract_oi_btc_avg_price_short"
+    chart.x_axis.title = "Min"
+    chart.y_axis.title = "USD"
+    # Change bar filling and line color
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
+    contract_oi_price_sheet.add_chart(chart, "A20")
+
+    contract_oi_price_sheet['J18'] = "Contract OI ETH short avg price"
+    values = Reference(sheet, min_col=65, min_row=3, max_col=65, max_row=timestamps)
+    chart = LineChart()
+    chart.add_data(values)
+    chart.title = "contract_oi_eth_avg_price_short"
+    chart.x_axis.title = "Min"
+    chart.y_axis.title = "USD"
+    # Change bar filling and line color
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
+    contract_oi_price_sheet.add_chart(chart, "J20")
+
+    contract_oi_price_sheet['S18'] = "Contract OI SOL short avg price"
+    values = Reference(sheet, min_col=67, min_row=3, max_col=67, max_row=timestamps)
+    chart = LineChart()
+    chart.add_data(values)
+    chart.title = "contract_oi_sol_avg_price_short"
+    chart.x_axis.title = "Min"
+    chart.y_axis.title = "USD"
+    # Change bar filling and line color
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "FF0000"
+    s.graphicalProperties.solidFill = "FF0000"
+    contract_oi_price_sheet.add_chart(chart, "S20")
+
+    contract_oi_price_sheet['A35'] = "Contract OI BTC collateral avg price"
+    timestamps = df.shape[0]
+    values = Reference(sheet, min_col=71, min_row=3, max_col=71, max_row=timestamps)
+    chart = LineChart()
+    chart.add_data(values)
+    chart.title = "contract_oi_btc_avg_collateral_price"
+    chart.x_axis.title = "Min"
+    chart.y_axis.title = "USD"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "00FF00"
+    s.graphicalProperties.solidFill = "00FF00"
+    contract_oi_price_sheet.add_chart(chart, "A37")
+
+    contract_oi_price_sheet['J35'] = "Contract OI ETH collateral avg price"
+    timestamps = df.shape[0]
+    values = Reference(sheet, min_col=72, min_row=3, max_col=72, max_row=timestamps)
+    chart = LineChart()
+    chart.add_data(values)
+    chart.title = "contract_oi_eth_avg_collateral_price"
+    chart.x_axis.title = "Min"
+    chart.y_axis.title = "USD"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "00FF00"
+    s.graphicalProperties.solidFill = "00FF00"
+    contract_oi_price_sheet.add_chart(chart, "J37")
+
+    contract_oi_price_sheet['S35'] = "Contract OI SOL collateral avg price"
+    timestamps = df.shape[0]
+    values = Reference(sheet, min_col=73, min_row=3, max_col=73, max_row=timestamps)
+    chart = LineChart()
+    chart.add_data(values)
+    chart.title = "contract_oi_sol_avg_collateral_price"
+    chart.x_axis.title = "Min"
+    chart.y_axis.title = "USD"
+    # Change bar filling and line color 
+    s = chart.series[0]
+    s.graphicalProperties.line.solidFill = "00FF00"
+    s.graphicalProperties.solidFill = "00FF00"
+    contract_oi_price_sheet.add_chart(chart, "S37")
+    
     wb.save(f'{name}.xlsx')

@@ -39,7 +39,7 @@ def generate_traders(n_traders):
         trader = {
             'id': i,
             'liquidity': {asset: np.random.uniform(low=100, high=5000)/asset_prices[f'{asset}'][0] for asset in assets},  # Sample initial liquidity from some distribution
-            'positions_long': {},  # {token: {quantity: 0, entry_price: 0, collateral: 0, timestep: 0}}
+            'positions_long': {},  # {token: {quantity: 0, entry_price: 0, collateral: 0, nominal_collaterall: 0, timestep: 0}}
             'positions_short': {},  # {token: {quantity: 0, entry_price: 0, collateral: {amount: 0, denomination: "USDC"}, timestep: 0}}
             'PnL': 0,
             'avg_position_hold': np.random.uniform(low=1, high=100),
@@ -78,7 +78,8 @@ def generate_pools(n_pools):
             'fees': initial_conditions['pool_fees'],
             'lp_shares': 100,
             'tvl': init_tvl,
-            'pool_ratios': {'BTC': init_liq['BTC'] * asset_prices['BTC'][0] / init_tvl, 'SOL': init_liq['SOL'] * asset_prices['SOL'][0] / init_tvl, 'ETH': init_liq['ETH'] * asset_prices['ETH'][0] / init_tvl, 'USDC': init_liq['USDC'] * asset_prices['USDC'][0] / init_tvl, 'USDT': init_liq['USDT'] * asset_prices['USDT'][0] / init_tvl}
+            'pool_ratios': {'BTC': init_liq['BTC'] * asset_prices['BTC'][0] / init_tvl, 'SOL': init_liq['SOL'] * asset_prices['SOL'][0] / init_tvl, 'ETH': init_liq['ETH'] * asset_prices['ETH'][0] / init_tvl, 'USDC': init_liq['USDC'] * asset_prices['USDC'][0] / init_tvl, 'USDT': init_liq['USDT'] * asset_prices['USDT'][0] / init_tvl},
+            'contract_oi': {'BTC': {'oi_long': 0, 'avg_price_long': 0, 'tot_collateral': 0, 'avg_collateral_price': 0 , 'oi_short': 0, 'avg_price_short': 0}, 'SOL': {'oi_long': 0, 'avg_price_long': 0, 'tot_collateral': 0, 'avg_collateral_price': 0 , 'oi_short': 0, 'avg_price_short': 0}, 'ETH': {'oi_long': 0, 'avg_price_long': 0, 'tot_collateral': 0, 'avg_collateral_price': 0 , 'oi_short': 0, 'avg_price_short': 0}},
         }
     pools[i] = pool
     return pools

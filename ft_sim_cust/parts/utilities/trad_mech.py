@@ -54,7 +54,8 @@ def close_long(trader, timestep, asset, asset_price, liquidated, pool, rate_para
     pnl = usd_pnl / asset_price
     duration = timestep - trader[f'positions_long'][asset]['timestep']
     interest = calculate_interest(trader[f'positions_long'][asset]['quantity'], duration, asset, pool, rate_params)
-    payout = trader[f'positions_long'][asset]['collateral'] - interest + pnl
+    payout = trader[f'positions_long'][asset]['nominal_collateral'] / asset_price - interest + pnl
+    collateral_pnl = trader[f'positions_long'][asset]['nominal_collateral'] / asset_price - trader[f'positions_long'][asset]['collateral']
 
     decision = {
         'quantity': trader['positions_long'][asset]['quantity'],
@@ -62,6 +63,8 @@ def close_long(trader, timestep, asset, asset_price, liquidated, pool, rate_para
         'interest_paid': interest,
         'PnL': pnl,
         'usd_pnl': usd_pnl,
+        'collateral_pnl': collateral_pnl,
+        'collateral': trader[f'positions_long'][asset]['collateral'],
         'liquidation': liquidated,
         'direction': 'close'
     }
@@ -115,7 +118,8 @@ def trading_decision(trader_passed, timestep, asset, asset_pricing, max_margin, 
         pnl = usd_pnl / cl_price
         duration = timestep - trader[f'positions_long'][asset]['timestep']
         interest = calculate_interest(trader[f'positions_long'][asset]['quantity'], duration, asset, pool, rate_params)
-        payout = trader[f'positions_long'][asset]['collateral'] - interest + pnl
+        payout = trader[f'positions_long'][asset]['nominal_collateral'] / cl_price - interest + pnl
+        collateral_pnl = trader[f'positions_long'][asset]['nominal_collateral'] / cl_price - trader[f'positions_long'][asset]['collateral']
         # if payout < 0:
         #     print('cl', payout, trader[f'positions_long'][asset]['collateral'], interest, pnl)
         if payout / trader['positions_long'][asset]['quantity'] < liquidation_threshold:
@@ -125,6 +129,8 @@ def trading_decision(trader_passed, timestep, asset, asset_pricing, max_margin, 
                 'interest_paid': interest,
                 'PnL': pnl,
                 'usd_pnl': usd_pnl,
+                'collateral_pnl': collateral_pnl,
+                'collateral': trader[f'positions_long'][asset]['collateral'],
                 'liquidation': True,
                 'direction': 'close'
             }
@@ -258,12 +264,14 @@ def update_trader_open_long(trader, trade_decision, fees, asset, timestep):
         updated_trader['positions_long'][asset]['entry_price'] = (long_asset['asset_price'] * long_quantity + updated_trader['positions_long'][asset]['entry_price'] * updated_trader['positions_long'][asset]['quantity']) / (long_quantity + updated_trader['positions_long'][asset]['quantity'])
         updated_trader['positions_long'][asset]['quantity'] += long_quantity
         updated_trader['positions_long'][asset]['collateral'] += long_collateral
+        updated_trader['positions_long'][asset]['nominal_collateral'] += long_collateral * trade_decision['long']['asset_price']
         updated_trader['positions_long'][asset]['timestep'] = timestep
     else:
         updated_trader['positions_long'][asset] = {
             'quantity': long_quantity,
             'entry_price': long_asset['asset_price'],
             'collateral': long_collateral,
+            'nominal_collateral': long_collateral * long_asset['asset_price'],
             'timestep': timestep
         }
     return updated_trader
@@ -316,6 +324,12 @@ def update_pool_open_long(pool, trader, asset, trade_decision, fees):
 
     # Increase the open interest
     updated_pool['oi_long'][asset] += trade_decision['long']['quantity']
+    updated_cont_oi = trade_decision['long']['quantity'] + updated_pool['contract_oi'][asset]['oi_long']
+    updated_tot_collateral = trade_decision['long']['collateral'] + updated_pool['contract_oi'][asset]['tot_collateral']
+    updated_pool['contract_oi'][asset]['avg_price_long'] = updated_pool['contract_oi'][asset]['avg_price_long'] * (updated_pool['contract_oi'][asset]['oi_long']/updated_cont_oi) + trade_decision['long']['asset_price'] * (trade_decision['long']['quantity']/updated_cont_oi)
+    updated_pool['contract_oi'][asset]['avg_collateral_price'] = updated_pool['contract_oi'][asset]['avg_collateral_price'] * (updated_pool['contract_oi'][asset]['tot_collateral']/updated_tot_collateral) + trade_decision['long']['asset_price'] * (trade_decision['long']['collateral']/updated_tot_collateral)
+    updated_pool['contract_oi'][asset]['oi_long'] = updated_cont_oi
+    updated_pool['contract_oi'][asset]['tot_collateral'] = updated_tot_collateral
     updated_pool['volume'][asset] += trade_decision['long']['quantity']
     updated_pool['total_fees_collected'][asset] += fees[0] + trade_decision['long']['interest_paid']
 
@@ -342,6 +356,9 @@ def update_pool_open_short(pool, trader, asset, trade_decision, fees):
     
     # Increase the open interest
     updated_pool['oi_short'][asset] += trade_decision['short']['quantity']
+    updated_cont_oi = trade_decision['short']['quantity'] + updated_pool['contract_oi'][asset]['oi_short']
+    updated_pool['contract_oi'][asset]['avg_price_short'] = updated_pool['contract_oi'][asset]['avg_price_short'] * (updated_pool['contract_oi'][asset]['oi_short']/updated_cont_oi) + trade_decision['short']['asset_price'] * (trade_decision['short']['quantity']/updated_cont_oi)
+    updated_pool['contract_oi'][asset]['oi_short'] = updated_cont_oi
     updated_pool['short_interest'][trade_decision['short']['denomination']] += trade_decision['short']['quantity'] * trade_decision['short']['asset_price']
     updated_pool['volume'][asset] += trade_decision['short']['quantity']
     updated_pool['total_fees_collected'][trade_decision['short']['denomination']] += fees[1] + trade_decision['short']['interest_paid']
@@ -393,9 +410,12 @@ def update_pool_close_long(pool, trader, asset, trade_decision, fees):
 
     # Decrease the open interest
     updated_pool['oi_long'][asset] -= trade_decision['long']['quantity']
+    updated_pool['contract_oi'][asset]['oi_long'] -= trade_decision['long']['quantity']
+    updated_pool['contract_oi'][asset]['tot_collateral'] -= trade_decision['long']['collateral']
     updated_pool['volume'][asset] += trade_decision['long']['quantity']
     updated_pool['total_fees_collected'][asset] += fees[0] + trade_decision['long']['interest_paid']
     updated_pool['holdings'][asset] -= trade_decision['long']['PnL']
+    updated_pool['holdings'][asset] -= trade_decision['long']['collateral_pnl']
 
     # Update loan book
     if trader['id'] not in updated_pool['loan_book_longs']:
@@ -414,6 +434,7 @@ def update_pool_close_short(pool, trader, asset, trade_decision, fees):
 
     # Decrease the open interest
     updated_pool['oi_short'][asset] -= trade_decision['short']['quantity']
+    updated_pool['contract_oi'][asset]['oi_short'] -= trade_decision['short']['quantity']
     updated_pool['short_interest'][trade_decision['short']['denomination']] -= trade_decision['short']['quantity'] * trade_decision['short']['asset_price']
     updated_pool['volume'][asset] += trade_decision['short']['quantity']
     updated_pool['total_fees_collected'][trade_decision['short']['denomination']] += fees[1] + trade_decision['short']['interest_paid']
