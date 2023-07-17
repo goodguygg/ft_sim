@@ -87,22 +87,22 @@ def pool_tvl(holdings, asset_prices, minmax=0):
             tvl += holdings[asset] * asset_prices[asset][minmax]
     return tvl
 
-def pool_tvl_max(holdings, asset_prices):
-    tvl = 0
-    for asset in holdings.keys():
-        tvl += holdings[asset] * asset_prices[asset][0] if asset_prices[asset][0] > asset_prices[asset][1] else holdings[asset] * asset_prices[asset][1]
-    return tvl
+# def pool_tvl_max(holdings, asset_prices):
+#     tvl = 0
+#     for asset in holdings.keys():
+#         tvl += holdings[asset] * asset_prices[asset][0] if asset_prices[asset][0] > asset_prices[asset][1] else holdings[asset] * asset_prices[asset][1]
+#     return tvl
 
-def pool_tvl_min(holdings, asset_prices):
-    tvl = 0
-    for asset in holdings.keys():
-        tvl += holdings[asset] * asset_prices[asset][0] if asset_prices[asset][0] < asset_prices[asset][1] else holdings[asset] * asset_prices[asset][1]
-    return tvl
+# def pool_tvl_min(holdings, asset_prices):
+#     tvl = 0
+#     for asset in holdings.keys():
+#         tvl += holdings[asset] * asset_prices[asset][0] if asset_prices[asset][0] < asset_prices[asset][1] else holdings[asset] * asset_prices[asset][1]
+#     return tvl
 
-def get_account_value(trader, asset_prices):
-    total_value = sum([trader['liquidity'][asset] * asset_prices[asset][0] for asset in trader['liquidity'].keys()])
-    total_value += sum([(trader['positions'][asset][0] * asset_prices[asset][0] - trader['loans'][asset][0]) for asset in trader['positions'].keys()])
-    return total_value
+# def get_account_value(trader, asset_prices):
+#     total_value = sum([trader['liquidity'][asset] * asset_prices[asset][0] for asset in trader['liquidity'].keys()])
+#     total_value += sum([(trader['positions'][asset][0] * asset_prices[asset][0] - trader['loans'][asset][0]) for asset in trader['positions'].keys()])
+#     return total_value
 
 def get_provider_balance(provider, asset_prices):
     lp = copy.deepcopy(provider)
@@ -116,7 +116,7 @@ def calculate_interest(position_size, duration, asset, pool, rate_params):
     slope2 = rate_params[2]
 
     total_holdings = pool['holdings'][asset]
-    total_borrowed = pool['oi_long'][asset]# + pool['oi_short'][asset]
+    total_borrowed = pool['oi_long'][asset]
 
     # Handle division by zero
     if total_holdings == 0:
@@ -133,7 +133,6 @@ def calculate_interest(position_size, duration, asset, pool, rate_params):
     borrow_fee_amount = cumulative_interest * position_size
 
     return borrow_fee_amount
-
 
 def calculate_open_pnl(traders, asset_prices):
     open_pnl_long = {asset: 0 for asset in asset_prices.keys()}

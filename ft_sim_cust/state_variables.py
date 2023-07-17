@@ -27,7 +27,6 @@ def generate_providers(n_providers):
             'pool_share': 0
         }
         liquidity_providers[i] = liquidity_provider
-        #print("theresholds", thresholds)
     return liquidity_providers
 
 def generate_traders(n_traders):
@@ -56,7 +55,6 @@ def generate_pools(n_pools):
     init_tvl = pool_tvl(init_liq, asset_prices)
 
     for i in range(n_pools):
-        #token_a, token_b = np.random.choice(tokens, size=2, replace=False)  # Choose two different tokens for the pool
         pool = {
             'id': i,
             'assets': ['BTC', 'ETH', 'SOL', 'USDC', 'USDT'],
@@ -92,5 +90,4 @@ genesis_states = {
     'num_of_longs': 0,
     'num_of_shorts': 0,
     'num_of_swaps': 0
-    # 'oracle_attack': False
 }

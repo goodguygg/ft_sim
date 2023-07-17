@@ -5,12 +5,9 @@ import numpy as np
 
 def swap_decision(trader_passed, asset, asset_prices, swap_chance):
     if not asset.startswith("U") and asset_prices[asset][2] == True:
-        # print(asset_prices)
-        # if asset_prices[asset][2] == True:
         return None
-    #trader = copy.deepcopy(trader_passed)
 
-    swap_action = random.random() # 1/5 buy, 1/5 sell, 3/5 do nothing
+    swap_action = random.random()
     asset_held = trader_passed['liquidity'][asset]
     if swap_action < swap_chance[0]: # buy
         swap_in = np.random.uniform(low=0.01, high=0.99) * asset_held
@@ -60,8 +57,6 @@ def swap_fee_calc(pool, token_in, token_in_amt, token_out, token_out_amt, base_f
     where A = (fee max - fee optional) / (min ratio * 100 - target ratio * 100) ^ 3
     
     '''
-    #pool = copy.deepcopy(pool)
-    # return ratio_fee
     tvl = pool_total_holdings(pool, asset_prices)
     fee_max = om_fees[0]
     fee_optimal = om_fees[1]
@@ -102,7 +97,6 @@ def swap_tokens_trader(trader_passed, token_in, token_in_amt, token_out, token_o
 def swap_tokens_pool(pool, token_in, token_in_amt, token_out, token_out_amt, swap_fee, asset_prices):
 
     pool = copy.deepcopy(pool)
-    # print('swap', pool['lp_shares'], lp_tokens)
     if check_for_avail(pool, token_in, token_in_amt) == -1 or check_for_avail(pool, token_out, token_out_amt) == -1:
         return -1
 

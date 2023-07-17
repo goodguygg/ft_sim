@@ -25,16 +25,14 @@ def trading_policy(params, substep, state_history, previous_state):
             trader = traders[trader_id]
 
             for asset in pool['assets']:
-                # print(f"this is trade {asset} {trader['liquidity'][asset]}")
                 if asset == 'USDT' or asset == 'USDC':
                     continue
 
-                trade_decision = trading_decision(trader, timestep, asset, asset_prices[asset], params['max_margin'][asset], params['liquidation_threshold'][asset], pool, params['rate_params'], params['trade_chance'])
+                trade_decision = trading_decision(trader, timestep, asset, asset_prices, params['max_margin'][asset], params['liquidation_threshold'][asset], pool, params['rate_params'], params['trade_chance'])
 
                 if trade_decision['long'] == None and trade_decision['short'] == None:
-                    # print('no trade')
                     continue
-                # print('trade decision', trade_decision)
+
                 if trade_decision['short'] != None and trade_decision['short']['direction'] == 'open':
                     if trade_decision['short']['swap'] != 0:
                         tokens_in = trade_decision['short']['denomination']
@@ -66,19 +64,15 @@ def trading_policy(params, substep, state_history, previous_state):
                         continue
 
                 if exec_long != None:
-                    # print('longed')
                     num_of_longs += 1
                     if trade_decision['long']['direction'] == 'close' and trade_decision['long']['liquidation'] == True:
                         liquidations += 1
                 if exec_short != None:
-                    # print('shorted')
                     num_of_shorts += 1
                     if trade_decision['short']['direction'] == 'close' and trade_decision['short']['liquidation'] == True:
                         liquidations += 1
             
-            # asset_prices = get_asset_prices(price_dict)
             for asset in pool['assets']:
-                # print(f"this is swap {asset} {trader['liquidity'][asset]}")
 
                 swaping_decision = swap_decision(trader, asset, asset_prices, params['swap_chance'])
 
@@ -171,8 +165,3 @@ def num_of_swaps_update(params, substep, state_history, previous_state, policy):
     key = 'num_of_swaps'
     value = previous_state['num_of_swaps'] + policy['num_of_swaps']
     return (key, value)
-
-# def oracle_attack_update(params, substep, state_history, previous_state, policy):
-#     key = 'oracle_attack'
-#     value = previous_state['oracle_attack']
-#     return (key, value)

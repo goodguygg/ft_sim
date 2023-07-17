@@ -23,14 +23,4 @@ sys_params = {
     'trade_chance': [[0.01, 0.99]], # 1st value is the barrier for longs, second is for shorts
     'swap_chance': [[0.01, 0.99]], # chance of swapping in and swapping out tokens 
     'event': ['1'],
-    #'start_date': ['2022-11-01']
 }
-
-
-"""
-if problem - deny open position, swap and add liquidity, allow close or remove liquidity
-if use_spread true - use max for opening long, closing short, swap token out, liquidating shorts
------ min for opening shorts, closing longs, swap token in, liquidating longsremoving liquidity
-
-create an additional tracer for pnl with contract logic through cummulative positions
-"""

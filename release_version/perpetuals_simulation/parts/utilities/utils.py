@@ -1033,13 +1033,13 @@ def to_xslx(df, name):
     contract_oi_sheet.add_chart(chart, "S37")
 
     # Create a contract oi price sheet
-    contract_oi_price_sheet = wb.create_sheet(title="Contract oi price charts")
+    contract_oi_price_sheet = wb.create_sheet(title="Contract weighted price charts")
 
-    contract_oi_price_sheet['A1'] = "Contract OI BTC long avg price"
+    contract_oi_price_sheet['A1'] = "Contract OI BTC long weighted price"
     values = Reference(sheet, min_col=62, min_row=3, max_col=62, max_row=timestamps)
     chart = LineChart()
     chart.add_data(values)
-    chart.title = "contract_oi_btc_avg_price_long"
+    chart.title = "contract_oi_btc_weighted_price_long"
     chart.x_axis.title = "Min"
     chart.y_axis.title = "USD"
     # Change bar filling and line color
@@ -1048,11 +1048,11 @@ def to_xslx(df, name):
     s.graphicalProperties.solidFill = "00FF00"
     contract_oi_price_sheet.add_chart(chart, "A3")
 
-    contract_oi_price_sheet['J1'] = "Contract OI ETH long avg price"
+    contract_oi_price_sheet['J1'] = "Contract OI ETH long weighted price"
     values = Reference(sheet, min_col=64, min_row=3, max_col=64, max_row=timestamps)
     chart = LineChart()
     chart.add_data(values)
-    chart.title = "contract_oi_eth_avg_price_long"
+    chart.title = "contract_oi_eth_weighted_price_long"
     chart.x_axis.title = "Min"
     chart.y_axis.title = "USD"
     # Change bar filling and line color
@@ -1061,11 +1061,11 @@ def to_xslx(df, name):
     s.graphicalProperties.solidFill = "00FF00"
     contract_oi_price_sheet.add_chart(chart, "J3")
 
-    contract_oi_price_sheet['S1'] = "Contract OI SOL long avg price"
+    contract_oi_price_sheet['S1'] = "Contract OI SOL long weighted price"
     values = Reference(sheet, min_col=66, min_row=3, max_col=66, max_row=timestamps)
     chart = LineChart()
     chart.add_data(values)
-    chart.title = "contract_oi_sol_avg_price_long"
+    chart.title = "contract_oi_sol_weighted_price_long"
     chart.x_axis.title = "Min"
     chart.y_axis.title = "USD"
     # Change bar filling and line color
@@ -1074,11 +1074,11 @@ def to_xslx(df, name):
     s.graphicalProperties.solidFill = "00FF00"
     contract_oi_price_sheet.add_chart(chart, "S3")
 
-    contract_oi_price_sheet['A18'] = "Contract OI BTC short avg price"
+    contract_oi_price_sheet['A18'] = "Contract OI BTC short weighted price"
     values = Reference(sheet, min_col=63, min_row=3, max_col=63, max_row=timestamps)
     chart = LineChart()
     chart.add_data(values)
-    chart.title = "contract_oi_btc_avg_price_short"
+    chart.title = "contract_oi_btc_weighted_price_short"
     chart.x_axis.title = "Min"
     chart.y_axis.title = "USD"
     # Change bar filling and line color
@@ -1087,11 +1087,11 @@ def to_xslx(df, name):
     s.graphicalProperties.solidFill = "FF0000"
     contract_oi_price_sheet.add_chart(chart, "A20")
 
-    contract_oi_price_sheet['J18'] = "Contract OI ETH short avg price"
+    contract_oi_price_sheet['J18'] = "Contract OI ETH short weighted price"
     values = Reference(sheet, min_col=65, min_row=3, max_col=65, max_row=timestamps)
     chart = LineChart()
     chart.add_data(values)
-    chart.title = "contract_oi_eth_avg_price_short"
+    chart.title = "contract_oi_eth_weighted_price_short"
     chart.x_axis.title = "Min"
     chart.y_axis.title = "USD"
     # Change bar filling and line color
@@ -1100,11 +1100,11 @@ def to_xslx(df, name):
     s.graphicalProperties.solidFill = "FF0000"
     contract_oi_price_sheet.add_chart(chart, "J20")
 
-    contract_oi_price_sheet['S18'] = "Contract OI SOL short avg price"
+    contract_oi_price_sheet['S18'] = "Contract OI SOL short weighted price"
     values = Reference(sheet, min_col=67, min_row=3, max_col=67, max_row=timestamps)
     chart = LineChart()
     chart.add_data(values)
-    chart.title = "contract_oi_sol_avg_price_short"
+    chart.title = "contract_oi_sol_weighted_price_short"
     chart.x_axis.title = "Min"
     chart.y_axis.title = "USD"
     # Change bar filling and line color
@@ -1113,12 +1113,12 @@ def to_xslx(df, name):
     s.graphicalProperties.solidFill = "FF0000"
     contract_oi_price_sheet.add_chart(chart, "S20")
 
-    contract_oi_price_sheet['A35'] = "Contract OI BTC collateral avg price"
+    contract_oi_price_sheet['A35'] = "Contract OI BTC collateral weighted price"
     timestamps = df.shape[0]
     values = Reference(sheet, min_col=71, min_row=3, max_col=71, max_row=timestamps)
     chart = LineChart()
     chart.add_data(values)
-    chart.title = "contract_oi_btc_avg_collateral_price"
+    chart.title = "contract_oi_btc_weighted_collateral_price"
     chart.x_axis.title = "Min"
     chart.y_axis.title = "USD"
     # Change bar filling and line color 
@@ -1127,12 +1127,12 @@ def to_xslx(df, name):
     s.graphicalProperties.solidFill = "00FF00"
     contract_oi_price_sheet.add_chart(chart, "A37")
 
-    contract_oi_price_sheet['J35'] = "Contract OI ETH collateral avg price"
+    contract_oi_price_sheet['J35'] = "Contract OI ETH collateral weighted price"
     timestamps = df.shape[0]
     values = Reference(sheet, min_col=72, min_row=3, max_col=72, max_row=timestamps)
     chart = LineChart()
     chart.add_data(values)
-    chart.title = "contract_oi_eth_avg_collateral_price"
+    chart.title = "contract_oi_eth_weighted_collateral_price"
     chart.x_axis.title = "Min"
     chart.y_axis.title = "USD"
     # Change bar filling and line color 
@@ -1141,12 +1141,12 @@ def to_xslx(df, name):
     s.graphicalProperties.solidFill = "00FF00"
     contract_oi_price_sheet.add_chart(chart, "J37")
 
-    contract_oi_price_sheet['S35'] = "Contract OI SOL collateral avg price"
+    contract_oi_price_sheet['S35'] = "Contract OI SOL collateral weighted price"
     timestamps = df.shape[0]
     values = Reference(sheet, min_col=73, min_row=3, max_col=73, max_row=timestamps)
     chart = LineChart()
     chart.add_data(values)
-    chart.title = "contract_oi_sol_avg_collateral_price"
+    chart.title = "contract_oi_sol_weighted_collateral_price"
     chart.x_axis.title = "Min"
     chart.y_axis.title = "USD"
     # Change bar filling and line color 

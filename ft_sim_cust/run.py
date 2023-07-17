@@ -34,17 +34,6 @@ def postprocessing(df):
     with open('data.json', 'w') as file:
         file.write(json_data)
     
-    # Pool balances and ratios
-    # Amount of traders and providers
-    # Cumulative PnL for traders, max and min PnL for traders (per market)
-    # Cumulative apy for liquidity providers (per market)
-    # Open interest (long and short supplies per market)
-    # Volumes
-    # Number of liquidations
-    # Fees collected
-    # Treasury balance
-
-    # track pnl of the pool as metric
     # Initialize an empty list to store each timestep data
     data = []
     # Loop through each row in the dataframe
@@ -52,7 +41,6 @@ def postprocessing(df):
         traders = row['traders']
         liquidity_providers = row['liquidity_providers']
         pools = row['pools']
-        # treasury = row['treasury']
         liquidations = row['liquidations']
         num_of_longs = row['num_of_longs']
         num_of_shorts = row['num_of_shorts']
@@ -62,23 +50,19 @@ def postprocessing(df):
         nominal_exposure_eth = 0
         nominal_exposure_sol = 0
         for trader in traders.values():
-            # print(trader)
             if 'BTC' in trader['positions_long'] and 'BTC' in trader['positions_short']:
-                # print(f"nom exp btc {trader['positions_long']['BTC']['quantity']} + {trader['positions_short']['BTC']['quantity']}")
                 nominal_exposure_btc += trader['positions_long']['BTC']['quantity'] - trader['positions_short']['BTC']['quantity']
             elif 'BTC' in trader['positions_long']: 
                 nominal_exposure_btc += trader['positions_long']['BTC']['quantity']
             elif 'BTC' in trader['positions_short']:
                 nominal_exposure_btc -= trader['positions_short']['BTC']['quantity']
             if 'ETH' in trader['positions_long'] and 'ETH' in trader['positions_short']:
-                # print(f"nom exp eth {trader['positions_long']['ETH']['quantity']} + {trader['positions_short']['ETH']['quantity']}")
                 nominal_exposure_eth += trader['positions_long']['ETH']['quantity'] - trader['positions_short']['ETH']['quantity']
             elif 'ETH' in trader['positions_long']:
                 nominal_exposure_eth += trader['positions_long']['ETH']['quantity']
             elif 'ETH' in trader['positions_short']:
                 nominal_exposure_eth -= trader['positions_short']['ETH']['quantity']
             if 'SOL' in trader['positions_long'] and 'SOL' in trader['positions_short']:
-                # print(f"nom exp sol {trader['positions_long']['SOL']['quantity']} + {trader['positions_short']['SOL']['quantity']}")
                 nominal_exposure_sol += trader['positions_long']['SOL']['quantity'] - trader['positions_short']['SOL']['quantity']
             elif 'SOL' in trader['positions_long']:
                 nominal_exposure_sol += trader['positions_long']['SOL']['quantity']
@@ -98,7 +82,6 @@ def postprocessing(df):
             'cum_pnl_traders': sum(trader['PnL'] for trader in traders.values()),
             'max_pnl_traders': max(trader['PnL'] for trader in traders.values()),
             'min_pnl_traders': min(trader['PnL'] for trader in traders.values()),
-            # 'cum_apy_providers': sum(lp['yield'] for lp in liquidity_providers.values()),  # Assuming each LP has a 'yield' key
             'oi_long_btc': pools[0]['oi_long']['BTC'],
             'oi_long_eth': pools[0]['oi_long']['ETH'],
             'oi_long_sol': pools[0]['oi_long']['SOL'],

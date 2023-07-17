@@ -26,7 +26,6 @@ partial_state_update_block = [
             'num_of_longs': num_of_longs_update,
             'num_of_shorts': num_of_shorts_update,
             'num_of_swaps': num_of_swaps_update,
-            # 'oracle_attack': oracle_attack_update
         }
     },
     {

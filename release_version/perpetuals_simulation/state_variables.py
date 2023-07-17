@@ -77,7 +77,7 @@ def generate_pools(n_pools):
             'lp_shares': 100,
             'tvl': init_tvl,
             'pool_ratios': {'BTC': init_liq['BTC'] * asset_prices['BTC'][0] / init_tvl, 'SOL': init_liq['SOL'] * asset_prices['SOL'][0] / init_tvl, 'ETH': init_liq['ETH'] * asset_prices['ETH'][0] / init_tvl, 'USDC': init_liq['USDC'] * asset_prices['USDC'][0] / init_tvl, 'USDT': init_liq['USDT'] * asset_prices['USDT'][0] / init_tvl},
-            'contract_oi': {'BTC': {'oi_long': 0, 'avg_price_long': 0, 'tot_collateral': 0, 'avg_collateral_price': 0 , 'oi_short': 0, 'avg_price_short': 0}, 'SOL': {'oi_long': 0, 'avg_price_long': 0, 'tot_collateral': 0, 'avg_collateral_price': 0 , 'oi_short': 0, 'avg_price_short': 0}, 'ETH': {'oi_long': 0, 'avg_price_long': 0, 'tot_collateral': 0, 'avg_collateral_price': 0 , 'oi_short': 0, 'avg_price_short': 0}},
+            'contract_oi': {'BTC': {'oi_long': 0, 'weighted_price_long': 0, 'tot_collateral': 0, 'weighted_collateral_price': 0 , 'oi_short': 0, 'weighted_price_short': 0}, 'SOL': {'oi_long': 0, 'weighted_price_long': 0, 'tot_collateral': 0, 'weighted_collateral_price': 0 , 'oi_short': 0, 'weighted_price_short': 0}, 'ETH': {'oi_long': 0, 'weighted_price_long': 0, 'tot_collateral': 0, 'weighted_collateral_price': 0 , 'oi_short': 0, 'weighted_price_short': 0}},
         }
     pools[i] = pool
     return pools
