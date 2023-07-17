@@ -3,7 +3,7 @@
 initial_conditions = {
     'genesis_traders': 30, # genesis number of traders
     'genesis_providers': 10, # genesis number of providers
-    'num_of_min': 100, # number of minutes of the simulation
+    'num_of_min': 719, # number of minutes of the simulation
     # 'num_of_min': 1439, max for event 1
     # 'num_of_min': 1439, max for event 2
     # 'num_of_min': 659, max for event 3
