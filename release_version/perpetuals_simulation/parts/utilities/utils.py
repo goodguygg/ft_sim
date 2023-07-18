@@ -93,13 +93,16 @@ def get_provider_balance(provider, asset_prices):
     return total_value
 
 def calculate_interest(position_size, duration, asset, pool, rate_params):
-    duration = duration/24
+    duration = duration/(24 * 60)
     optimal_utilization = rate_params[0]
     slope1 = rate_params[1]
     slope2 = rate_params[2]
 
     total_holdings = pool['holdings'][asset]
-    total_borrowed = pool['oi_long'][asset]
+    if asset.startswith('U'):
+        total_borrowed = pool['oi_short'][asset]
+    else:
+        total_borrowed = pool['oi_long'][asset]
 
     # Handle division by zero
     if total_holdings == 0:
