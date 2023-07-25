@@ -1,19 +1,19 @@
 import pandas as pd
 from parts.utilities.utils import * 
 from cadCAD.engine import ExecutionMode, ExecutionContext,Executor
-from config import exp
+from config import experiments
 import json
 
 from sys_params import initial_conditions, sys_params
 
 
-def run():
+def run(event):
     '''
     Definition:
     Run simulation
     '''
     try:
-        tst_price = fetch_asset_prices(['BTC', 'ETH', 'SOL', 'USDC', 'USDT'], initial_conditions['num_of_min'], sys_params['event'][0])
+        tst_price = fetch_asset_prices(['BTC', 'ETH', 'SOL', 'USDC', 'USDT'], initial_conditions[event]['num_of_min'], sys_params[event]['event'][0])
     except:
         raise ValueError("Number of hours is out of range")
 
@@ -21,17 +21,18 @@ def run():
     exec_mode = ExecutionMode()
     local_mode_ctx = ExecutionContext(context=exec_mode.local_mode)
 
-    simulation = Executor(exec_context=local_mode_ctx, configs=exp.configs)
+    simulation = Executor(exec_context=local_mode_ctx, configs=experiments[event].configs)
     raw_system_events, tensor_field, sessions = simulation.execute()
     # Result System Events DataFrame
     df = pd.DataFrame(raw_system_events)
  
     return df
 
-def postprocessing(df):
+def postprocessing(df, event):
+
     json_data = df.to_json(orient='records', indent=4)
 
-    with open('data.json', 'w') as file:
+    with open(os.path.join('runs', f'data_{event}.json'), 'w') as file:
         file.write(json_data)
     
     # Initialize an empty list to store each timestep data
@@ -71,6 +72,8 @@ def postprocessing(df):
 
         # Generate data for each row
         timestep_data = {
+            'timestep': row['timestep'],
+
             'number_of_traders': len(traders),
             'number_of_liquidity_providers': len(liquidity_providers),
             'pool_lp_tokens': pools[0]['lp_shares'],
@@ -158,11 +161,17 @@ def main():
     Definition:
     Run simulation and extract metrics
     '''
-    df = run()
-    df = postprocessing(df)
-    to_xslx(df, f'run_{sys_params["event"][0]}') 
-    df = df[::3].reset_index(drop=True)
-    to_xslx(df, f'run_merged_{sys_params["event"][0]}') 
+    for i in range(8):
+        try:
+            df = run(i)
+            df = postprocessing(df, sys_params[i]["event"][0])
+            df = df[::3].reset_index(drop=True)
+            df = df.groupby('timestep').mean(numeric_only=False)
+            to_xslx(df, os.path.join('runs', f'run_merged_{sys_params[i]["event"][0]}')) 
+        except:
+            print(f'Event {sys_params[i]["event"][0]} failed')
+            continue
+
     return df
 
 if __name__ == '__main__':

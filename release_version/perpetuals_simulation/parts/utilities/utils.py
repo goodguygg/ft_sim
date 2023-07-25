@@ -11,6 +11,7 @@ from openpyxl.styles import PatternFill
 import openpyxl
 from openpyxl.utils.dataframe import dataframe_to_rows
 
+
 def fetch_asset_prices(assets, timestep, event):
     asset_prices = {}
     num_hr = math.floor(timestep / 60)
@@ -47,6 +48,15 @@ def fetch_asset_prices(assets, timestep, event):
             asset_prices.update({asset: [max_price, min_price, problem]})
 
     return asset_prices
+
+def initial_liquidity(event, asset_prices):
+    target_ratios = [0.23, 0.24, 0.05, 0.3, 0.18]
+    tot_val = asset_prices['BTC'][0] / target_ratios[0]
+    sol = (tot_val / asset_prices['SOL'][0]) * target_ratios[1]
+    eth = (tot_val / asset_prices['ETH'][0]) * target_ratios[2]
+    usdc = (tot_val / asset_prices['USDC'][0]) * target_ratios[3]
+    usdt = (tot_val / asset_prices['USDT'][0]) * target_ratios[4]
+    return {'BTC': 1, 'ETH': eth, 'SOL': sol, 'USDC': usdc, 'USDT': usdt}
 
 def get_asset_volatility(assets, timestep, event):
     asset_volatility = {}

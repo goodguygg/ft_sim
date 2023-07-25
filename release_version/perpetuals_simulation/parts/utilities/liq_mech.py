@@ -65,7 +65,7 @@ def liquidity_fee(pool_init, asset, provider_decision, asset_prices, base_fees, 
 
     target_ratio = pool['target_ratios'][asset]
     post_lp_ratio = (pool['holdings'][asset] + amount) * float(price) / tvl
-    max_ratio = target_ratio + pool['deviation'] if amount > 0 else target_ratio - pool['deviation']
+    max_ratio = target_ratio + pool['deviation'][asset] if amount > 0 else target_ratio - pool['deviation'][asset]
 
     # Calculate the pool receiving swap fee
     A = (fee_max - fee_optimal) / (max_ratio * 100 - target_ratio * 100) ** 3
