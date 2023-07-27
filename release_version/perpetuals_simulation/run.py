@@ -16,6 +16,7 @@ def run(event):
         tst_price = fetch_asset_prices(['BTC', 'ETH', 'SOL', 'USDC', 'USDT'], initial_conditions[event]['num_of_min'], sys_params[event]['event'][0])
     except:
         raise ValueError("Number of hours is out of range")
+    
 
     # Single
     exec_mode = ExecutionMode()
@@ -161,16 +162,20 @@ def main():
     Definition:
     Run simulation and extract metrics
     '''
-    for i in range(8):
-        try:
-            df = run(i)
-            df = postprocessing(df, sys_params[i]["event"][0])
-            df = df[::3].reset_index(drop=True)
-            df = df.groupby('timestep').mean(numeric_only=False)
-            to_xslx(df, os.path.join('runs', f'run_merged_{sys_params[i]["event"][0]}')) 
-        except:
-            print(f'Event {sys_params[i]["event"][0]} failed')
-            continue
+    for i in range(1):
+        for j in range(1, 11):
+            try:
+                df = run(i)
+                json_data = df.to_json(orient='records', indent=4)
+                with open(os.path.join('runs', f'event_{sys_params[i]["event"][0]}_mc{j}.json'), 'w') as file:
+                    file.write(json_data)
+                df = postprocessing(df, sys_params[i]["event"][0])
+                df = df[::3].reset_index(drop=True)
+                df = df.groupby('timestep').mean(numeric_only=False)
+                to_xslx(df, os.path.join('runs', f'event_{sys_params[i]["event"][0]}_mc{j}')) 
+            except:
+                print(f'Event {sys_params[i]["event"][0]} mc {j} failed')
+                continue
 
     return df
 

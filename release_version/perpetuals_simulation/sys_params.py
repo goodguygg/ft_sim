@@ -6,7 +6,6 @@ ic.append({
         'genesis_providers': 100, # genesis number of providers
         'num_of_min': 1439, # number of minutes of the simulation
         # 'num_of_min': 1439, max for event 1
-        'initial_liquidity': {'BTC': 1, 'ETH': 13, 'SOL': 625, 'USDC': 20000, 'USDT': 20000}, # initial pool liquidity
         'pool_fees': {'open': 0.01, 'close': 0.01} # pool fees
     })
 
@@ -15,7 +14,6 @@ ic.append({
         'genesis_providers': 100, # genesis number of providers
         'num_of_min': 1439, # number of minutes of the simulation
         # 'num_of_min': 1439, max for event 2
-        'initial_liquidity': {'BTC': 1, 'ETH': 13, 'SOL': 625, 'USDC': 20000, 'USDT': 20000}, # initial pool liquidity
         'pool_fees': {'open': 0.01, 'close': 0.01} # pool fees
     })
 
@@ -24,7 +22,6 @@ ic.append({
         'genesis_providers': 100, # genesis number of providers
         'num_of_min': 659, # number of minutes of the simulation
         # 'num_of_min': 659, max for event 3
-        'initial_liquidity': {'BTC': 1, 'ETH': 13, 'SOL': 625, 'USDC': 20000, 'USDT': 20000}, # initial pool liquidity
         'pool_fees': {'open': 0.01, 'close': 0.01} # pool fees
     })
 
@@ -33,7 +30,6 @@ ic.append({
         'genesis_providers': 100, # genesis number of providers
         'num_of_min': 659, # number of minutes of the simulation
         # 'num_of_min': 659, max for event 4
-        'initial_liquidity': {'BTC': 1, 'ETH': 13, 'SOL': 625, 'USDC': 20000, 'USDT': 20000}, # initial pool liquidity
         'pool_fees': {'open': 0.01, 'close': 0.01} # pool fees
     })
 
@@ -42,7 +38,6 @@ ic.append({
         'genesis_providers': 100, # genesis number of providers
         'num_of_min': 719, # number of minutes of the simulation
         # 'num_of_min': 719, max for event 5
-        'initial_liquidity': {'BTC': 1, 'ETH': 13, 'SOL': 625, 'USDC': 20000, 'USDT': 20000}, # initial pool liquidity
         'pool_fees': {'open': 0.01, 'close': 0.01} # pool fees
     })
 
@@ -51,7 +46,6 @@ ic.append({
         'genesis_providers': 100, # genesis number of providers
         'num_of_min': 719, # number of minutes of the simulation
         # 'num_of_min': 719, max for event 6
-        'initial_liquidity': {'BTC': 1, 'ETH': 13, 'SOL': 625, 'USDC': 20000, 'USDT': 20000}, # initial pool liquidity
         'pool_fees': {'open': 0.01, 'close': 0.01} # pool fees
     })
 
@@ -60,7 +54,6 @@ ic.append({
         'genesis_providers': 100, # genesis number of providers
         'num_of_min': 719, # number of minutes of the simulation
         # 'num_of_min': 719, max for event 7
-        'initial_liquidity': {'BTC': 1, 'ETH': 13, 'SOL': 625, 'USDC': 20000, 'USDT': 20000}, # initial pool liquidity
         'pool_fees': {'open': 0.01, 'close': 0.01} # pool fees
     })
 
@@ -69,7 +62,6 @@ ic.append({
         'genesis_providers': 100, # genesis number of providers
         'num_of_min': 719, # number of minutes of the simulation
         # 'num_of_min': 719, max for event 8
-        'initial_liquidity': {'BTC': 1, 'ETH': 13, 'SOL': 625, 'USDC': 20000, 'USDT': 20000}, # initial pool liquidity
         'pool_fees': {'open': 0.01, 'close': 0.01} # pool fees
     })
 

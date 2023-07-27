@@ -49,7 +49,7 @@ def fetch_asset_prices(assets, timestep, event):
 
     return asset_prices
 
-def initial_liquidity(event, asset_prices):
+def initial_liquidity(asset_prices):
     target_ratios = [0.23, 0.24, 0.05, 0.3, 0.18]
     tot_val = asset_prices['BTC'][0] / target_ratios[0]
     sol = (tot_val / asset_prices['SOL'][0]) * target_ratios[1]

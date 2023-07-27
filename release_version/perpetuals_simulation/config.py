@@ -10,7 +10,7 @@ for i in range(8):
 
     sim_config = config_sim (
         {
-            'N': 10, # number of monte carlo runs
+            'N': 1, # number of monte carlo runs
             'T': range(initial_conditions[i]['num_of_min']), # number of timesteps
             'M': sys_params[i], # simulation parameters
         }

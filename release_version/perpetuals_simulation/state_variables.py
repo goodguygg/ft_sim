@@ -6,7 +6,7 @@ def generate_providers(init_cond, event):
     liquidity_providers = {}
     assets = ['BTC', 'ETH', 'SOL', 'USDC', 'USDT']
     asset_prices = fetch_asset_prices(assets, 0, event)
-    init_liq = initial_liquidity(event, asset_prices)
+    init_liq = initial_liquidity(asset_prices)
 
     # initialize protocol provider
     liquidity_providers['genesis'] = {
@@ -55,14 +55,14 @@ def generate_pools(init_cond, event):
     pools = {}
     assets = ['BTC', 'ETH', 'SOL', 'USDC', 'USDT']
     asset_prices = fetch_asset_prices(assets, 0, event)
-    init_liq = initial_liquidity(event, asset_prices)
+    init_liq = initial_liquidity(asset_prices)
     init_tvl = pool_tvl(init_liq, asset_prices)
 
     for i in range(1):
         pool = {
             'id': i,
             'assets': ['BTC', 'ETH', 'SOL', 'USDC', 'USDT'],
-            'holdings': init_liq,
+            'holdings': copy.deepcopy(init_liq),
             'oi_long': {'BTC': 0, 'SOL': 0, 'ETH': 0, 'USDC': 0, 'USDT': 0},
             'oi_short': {'BTC': 0, 'SOL': 0, 'ETH': 0, 'USDC': 0, 'USDT': 0},
             'short_interest': {'USDC': 0, 'USDT': 0},
@@ -73,13 +73,13 @@ def generate_pools(init_cond, event):
             'yield': {'BTC': 0.01, 'SOL': 0.01, 'ETH': 0.01, 'USDC': 0.01, 'USDT': 0.01},
             'target_ratios': {'BTC': 0.23, 'SOL': 0.25, 'ETH': 0.05, 'USDC': 0.3, 'USDT': 0.18},
             'deviation': {'BTC': 0.08, 'SOL': 0.06, 'ETH': 0.02, 'USDC': 0.04, 'USDT': 0.04},
-            'lps': {"genesis": init_liq},
+            'lps': {"genesis": copy.deepcopy(init_liq)},
             'loan_book_longs': {},  # {agent_id: {token: {amount, collateral}}}
             'loan_book_shorts': {},  # {agent_id: {token: {amount, collateral}}}
             'utilization_mult': {'BTC': 0.01, 'SOL': 0.01, 'ETH': 0.01, 'USDC': 0.01, 'USDT': 0.01},
             'fees': conditions['pool_fees'],
             'lp_shares': 100,
-            'tvl': init_tvl,
+            'tvl': copy.deepcopy(init_tvl),
             'pool_ratios': {'BTC': init_liq['BTC'] * asset_prices['BTC'][0] / init_tvl, 'SOL': init_liq['SOL'] * asset_prices['SOL'][0] / init_tvl, 'ETH': init_liq['ETH'] * asset_prices['ETH'][0] / init_tvl, 'USDC': init_liq['USDC'] * asset_prices['USDC'][0] / init_tvl, 'USDT': init_liq['USDT'] * asset_prices['USDT'][0] / init_tvl},
             'contract_oi': {'BTC': {'oi_long': 0, 'weighted_price_long': 0, 'tot_collateral': 0, 'weighted_collateral_price': 0 , 'oi_short': 0, 'weighted_price_short': 0}, 'SOL': {'oi_long': 0, 'weighted_price_long': 0, 'tot_collateral': 0, 'weighted_collateral_price': 0 , 'oi_short': 0, 'weighted_price_short': 0}, 'ETH': {'oi_long': 0, 'weighted_price_long': 0, 'tot_collateral': 0, 'weighted_collateral_price': 0 , 'oi_short': 0, 'weighted_price_short': 0}},
         }
