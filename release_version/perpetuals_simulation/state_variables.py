@@ -71,8 +71,9 @@ def generate_pools(init_cond, event):
             'volume': {'BTC': 0, 'SOL': 0, 'ETH': 0, 'USDC': 0, 'USDT': 0},
             'total_fees_collected': {'BTC': 0, 'SOL': 0, 'ETH': 0, 'USDC': 0, 'USDT': 0},
             'yield': {'BTC': 0.01, 'SOL': 0.01, 'ETH': 0.01, 'USDC': 0.01, 'USDT': 0.01},
-            'target_ratios': {'BTC': 0.23, 'SOL': 0.25, 'ETH': 0.05, 'USDC': 0.3, 'USDT': 0.18},
-            'deviation': {'BTC': 0.08, 'SOL': 0.06, 'ETH': 0.02, 'USDC': 0.04, 'USDT': 0.04},
+            'target_ratios': {'BTC': 0.23, 'SOL': 0.05, 'ETH': 0.24, 'USDC': 0.3, 'USDT': 0.18},
+            'min_ratio': {'BTC': 0.1, 'SOL': 0.03, 'ETH': 0.1, 'USDC': 0.25, 'USDT': 0.015},
+            'max_ratio': {'BTC': 0.5, 'SOL': 0.12, 'ETH': 0.5, 'USDC': 0.4, 'USDT': 0.21},
             'lps': {"genesis": copy.deepcopy(init_liq)},
             'loan_book_longs': {},  # {agent_id: {token: {amount, collateral}}}
             'loan_book_shorts': {},  # {agent_id: {token: {amount, collateral}}}
@@ -80,7 +81,7 @@ def generate_pools(init_cond, event):
             'fees': conditions['pool_fees'],
             'lp_shares': 100,
             'tvl': copy.deepcopy(init_tvl),
-            'pool_ratios': {'BTC': init_liq['BTC'] * asset_prices['BTC'][0] / init_tvl, 'SOL': init_liq['SOL'] * asset_prices['SOL'][0] / init_tvl, 'ETH': init_liq['ETH'] * asset_prices['ETH'][0] / init_tvl, 'USDC': init_liq['USDC'] * asset_prices['USDC'][0] / init_tvl, 'USDT': init_liq['USDT'] * asset_prices['USDT'][0] / init_tvl},
+            'pool_ratios': {'BTC': copy.deepcopy(init_liq['BTC']) * asset_prices['BTC'][0] / init_tvl, 'SOL': copy.deepcopy(init_liq['SOL']) * asset_prices['SOL'][0] / init_tvl, 'ETH': copy.deepcopy(init_liq['ETH']) * asset_prices['ETH'][0] / init_tvl, 'USDC': copy.deepcopy(init_liq['USDC']) * asset_prices['USDC'][0] / init_tvl, 'USDT': copy.deepcopy(init_liq['USDT']) * asset_prices['USDT'][0] / init_tvl},
             'contract_oi': {'BTC': {'oi_long': 0, 'weighted_price_long': 0, 'tot_collateral': 0, 'weighted_collateral_price': 0 , 'oi_short': 0, 'weighted_price_short': 0}, 'SOL': {'oi_long': 0, 'weighted_price_long': 0, 'tot_collateral': 0, 'weighted_collateral_price': 0 , 'oi_short': 0, 'weighted_price_short': 0}, 'ETH': {'oi_long': 0, 'weighted_price_long': 0, 'tot_collateral': 0, 'weighted_collateral_price': 0 , 'oi_short': 0, 'weighted_price_short': 0}},
         }
     pools[i] = pool

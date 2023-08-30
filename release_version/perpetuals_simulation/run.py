@@ -6,7 +6,6 @@ import json
 
 from sys_params import initial_conditions, sys_params
 
-
 def run(event):
     '''
     Definition:
@@ -17,7 +16,6 @@ def run(event):
     except:
         raise ValueError("Number of hours is out of range")
     
-
     # Single
     exec_mode = ExecutionMode()
     local_mode_ctx = ExecutionContext(context=exec_mode.local_mode)
@@ -30,11 +28,6 @@ def run(event):
     return df
 
 def postprocessing(df, event):
-
-    json_data = df.to_json(orient='records', indent=4)
-
-    with open(os.path.join('runs', f'data_{event}.json'), 'w') as file:
-        file.write(json_data)
     
     # Initialize an empty list to store each timestep data
     data = []
@@ -71,10 +64,11 @@ def postprocessing(df, event):
             elif 'SOL' in trader['positions_short']:
                 nominal_exposure_sol -= trader['positions_short']['SOL']['quantity']
 
+        # print('asst prices num', i)
+        asst_prices = fetch_asset_prices(['BTC', 'ETH', 'SOL', 'USDC', 'USDT'], row['timestep'], event)
         # Generate data for each row
         timestep_data = {
             'timestep': row['timestep'],
-
             'number_of_traders': len(traders),
             'number_of_liquidity_providers': len(liquidity_providers),
             'pool_lp_tokens': pools[0]['lp_shares'],
@@ -147,6 +141,12 @@ def postprocessing(df, event):
             'contract_oi_btc_weighted_collateral_price': pools[0]['contract_oi']['BTC']['weighted_collateral_price'],
             'contract_oi_eth_weighted_collateral_price': pools[0]['contract_oi']['ETH']['weighted_collateral_price'],
             'contract_oi_sol_weighted_collateral_price': pools[0]['contract_oi']['SOL']['weighted_collateral_price'],
+            'btc_price': asst_prices['BTC'][0],
+            'btc_time': str(asst_prices['BTC'][3]),
+            'eth_price': asst_prices['ETH'][0],
+            'eth_time': str(asst_prices['ETH'][3]),
+            'sol_price': asst_prices['SOL'][0],
+            'sol_time': str(asst_prices['SOL'][3]),
         }
         
         # Append the timestep data to the list
@@ -162,22 +162,30 @@ def main():
     Definition:
     Run simulation and extract metrics
     '''
-    for i in range(1):
-        for j in range(1, 11):
-            try:
-                df = run(i)
-                json_data = df.to_json(orient='records', indent=4)
-                with open(os.path.join('runs', f'event_{sys_params[i]["event"][0]}_mc{j}.json'), 'w') as file:
-                    file.write(json_data)
-                df = postprocessing(df, sys_params[i]["event"][0])
-                df = df[::3].reset_index(drop=True)
-                df = df.groupby('timestep').mean(numeric_only=False)
-                to_xslx(df, os.path.join('runs', f'event_{sys_params[i]["event"][0]}_mc{j}')) 
-            except:
-                print(f'Event {sys_params[i]["event"][0]} mc {j} failed')
-                continue
+    starting_event = 0
+    ending_event = 8
+    number_of_mc = 10
+    starting_mc = 1
+    for i in range(starting_event, ending_event):
+        if i == 0:
+            starting_mc = 2
+        else:
+            starting_mc = 1
+        for j in range(starting_mc, number_of_mc + 1):
+            df = run(i)
+            json_data = df.to_json(orient='records', indent=4)
+            with open(os.path.join('runs', f'event_{sys_params[i]["event"][0]}_mc{j}.json'), 'w') as file:
+                file.write(json_data)
+            df = postprocessing(df, sys_params[i]["event"][0])
+            exclude_cols = ['btc_time', 'eth_time', 'sol_time']
+            df_exclude = df[exclude_cols + ['timestep']]
+            df_aggregate = df.drop(columns=exclude_cols)
+            agg_df = df_aggregate.groupby('timestep').mean().reset_index()
+            df_exclude = df_exclude.groupby('timestep').first().reset_index()
+            result_df = pd.merge(agg_df, df_exclude, on='timestep', how='left')
+            result_df = result_df.drop(result_df.columns[0], axis=1)
+            to_xslx(result_df, os.path.join('runs', f'event_{sys_params[i]["event"][0]}_mc{j}')) 
 
-    return df
 
 if __name__ == '__main__':
     main()

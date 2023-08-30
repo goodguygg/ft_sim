@@ -424,7 +424,7 @@ def update_pool_close_short(pool, trader, asset, trade_decision, fees, entry_pri
     # Decrease the open interest
     updated_pool['oi_short'][asset] -= trade_decision['short']['quantity']
     updated_pool['contract_oi'][asset]['oi_short'] -= trade_decision['short']['quantity']
-    updated_pool['contract_oi'][asset]['weighted_price_short'] += trade_decision['short']['asset_price'] * trade_decision['short']['quantity']
+    updated_pool['contract_oi'][asset]['weighted_price_short'] -= trade_decision['short']['asset_price'] * trade_decision['short']['quantity']
     updated_pool['short_interest'][trade_decision['short']['denomination']] -= trade_decision['short']['quantity'] * entry_price
     updated_pool['volume'][asset] += trade_decision['short']['quantity']
     updated_pool['total_fees_collected'][trade_decision['short']['denomination']] += fees[1] + trade_decision['short']['interest_paid']
